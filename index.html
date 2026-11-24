@@ -507,20 +507,48 @@
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
     import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
+    // =========================================================================
+    // 🚀 YOUR FIREBASE CONFIGURATION (REQUIRED FOR MULTIPLAYER ON GITHUB PAGES)
+    // To make this app sync online for everyone on your GitHub Pages link:
+    // 1. Go to console.firebase.google.com and create a free project.
+    // 2. Add a Web App, and copy the config object it gives you below.
+    // 3. Enable "Firestore Database" (Start in Test Mode).
+    // 4. Enable "Authentication" -> "Anonymous" provider.
+    // =========================================================================
+    const myFirebaseConfig = {
+      apiKey: "YOUR_API_KEY",
+      authDomain: "YOUR_PROJECT_ID.firebaseapp.com",
+      projectId: "YOUR_PROJECT_ID",
+      storageBucket: "YOUR_PROJECT_ID.appspot.com",
+      messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
+      appId: "YOUR_APP_ID"
+    };
+
     // Initialize Firebase safely
-    const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-social-default-app';
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-github-live';
     let app = null;
     let auth = null;
     let db = null;
     let firebaseReady = false;
 
     try {
-      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
-        const firebaseConfig = JSON.parse(__firebase_config);
-        app = initializeApp(firebaseConfig);
+      let activeConfig = null;
+      // Use your custom config if you replaced the YOUR_API_KEY placeholder
+      if (myFirebaseConfig.apiKey !== "YOUR_API_KEY") {
+        activeConfig = myFirebaseConfig;
+      } 
+      // Otherwise, use the preview environment's cloud if available
+      else if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        activeConfig = JSON.parse(__firebase_config);
+      }
+
+      if (activeConfig) {
+        app = initializeApp(activeConfig);
         auth = getAuth(app);
         db = getFirestore(app);
         firebaseReady = true;
+      } else {
+        console.warn("Running in Offline/Local Mode. Add Firebase config to sync globally.");
       }
     } catch (e) {
       console.warn("Firebase initialization fallback:", e);
@@ -529,9 +557,9 @@
     // Global In-Memory + Firestore-Synced State
     window.appState = {
       firebaseUser: null,
-      currentAccount: null,
-      accounts: [],
-      posts: [],
+      currentAccount: JSON.parse(localStorage.getItem('pulse_account')) || null,
+      accounts: JSON.parse(localStorage.getItem('pulse_accounts')) || [],
+      posts: JSON.parse(localStorage.getItem('pulse_posts')) || [],
       activeTab: 'home',
       searchQuery: '',
       activeTag: null,
@@ -540,6 +568,15 @@
       avatarSeed: 'Pulse' + Math.floor(100 + Math.random() * 900),
       uploadedAvatarDataUrl: null
     };
+
+    // Save to browser storage so data persists across refreshes if Firebase isn't set up yet
+    function saveLocal() {
+      if (!firebaseReady) {
+        localStorage.setItem('pulse_account', JSON.stringify(window.appState.currentAccount));
+        localStorage.setItem('pulse_accounts', JSON.stringify(window.appState.accounts));
+        localStorage.setItem('pulse_posts', JSON.stringify(window.appState.posts));
+      }
+    }
 
     // Set initial preview avatar
     document.getElementById('signup-avatar-preview').src =
@@ -859,6 +896,7 @@
         } else {
           newAccount.docId = 'local_' + accountId;
           window.appState.accounts.unshift(newAccount);
+          saveLocal();
           renderRegisteredMembers();
         }
 
@@ -909,6 +947,7 @@
         }
 
         window.appState.currentAccount = matchedAccount;
+        saveLocal();
         document.getElementById('signin-form').reset();
         enterMainApp();
         showToast(`Welcome back, ${matchedAccount.name}!`);
@@ -932,6 +971,7 @@
 
     window.triggerSignOut = function() {
       window.appState.currentAccount = null;
+      saveLocal();
       document.getElementById('main-app-container').classList.add('hidden');
       document.getElementById('auth-modal').classList.remove('hidden');
       window.switchAuthMode('signin');
@@ -977,6 +1017,7 @@
 
       const newBio = input.value.trim() || 'New member on Pulse.';
       acc.bio = newBio;
+      saveLocal();
       updateAuthUI();
       document.getElementById('edit-bio-box').classList.add('hidden');
 
@@ -1051,6 +1092,7 @@
           await addDoc(postsColRef, newPostData);
         } else {
           window.appState.posts.unshift({ id: 'post_' + crypto.randomUUID(), ...newPostData });
+          saveLocal();
           updateProfilePostCount();
           renderFeed();
         }
@@ -1081,6 +1123,7 @@
       }
 
       post.likes = likes;
+      saveLocal();
       renderFeed();
 
       if (firebaseReady && db && window.appState.firebaseUser) {
@@ -1100,6 +1143,7 @@
           await deleteDoc(postRef);
         } else {
           window.appState.posts = window.appState.posts.filter((p) => p.id !== postId);
+          saveLocal();
           updateProfilePostCount();
           renderFeed();
         }
@@ -1134,6 +1178,7 @@
       const comments = [...(post.comments || []), newComment];
       post.comments = comments;
       input.value = '';
+      saveLocal();
       renderFeed();
       const box = document.getElementById(`comments-box-${postId}`);
       if (box) box.classList.remove('hidden');
@@ -1164,6 +1209,7 @@
       }
 
       acc.bookmarks = currentBookmarks;
+      saveLocal();
       updateBookmarkCounter();
       renderFeed();
 
