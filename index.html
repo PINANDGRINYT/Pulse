@@ -119,16 +119,25 @@
       <!-- CREATE ACCOUNT FORM -->
       <form id="signup-form" onsubmit="handleCreateAccount(event)" class="space-y-3.5">
         <!-- Avatar Picker Row -->
-        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
-          <img id="signup-avatar-preview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pulse1" alt="Avatar preview" class="w-12 h-12 rounded-full bg-white ring-2 ring-pulse-500/40 shrink-0" />
-          <div class="flex-1 min-w-0">
-            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Profile Avatar</p>
-            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Click shuffle to pick a look</p>
+        <div class="flex items-center gap-3 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+          <div class="relative shrink-0">
+            <img id="signup-avatar-preview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pulse1" alt="Avatar preview" class="w-12 h-12 rounded-full object-cover bg-white ring-2 ring-pulse-500/40" />
           </div>
-          <button type="button" onclick="randomizeAvatarSeed()" class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-pulse-500 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-colors">
-            <i class="fa-solid fa-shuffle text-pulse-500"></i>
-            <span>Shuffle</span>
-          </button>
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Profile Picture</p>
+            <p id="signup-avatar-status" class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Upload a photo or shuffle</p>
+          </div>
+          <div class="flex items-center gap-1.5 shrink-0">
+            <input id="signup-avatar-file-input" type="file" accept="image/*" onchange="handleSignupAvatarUpload(event)" class="hidden" />
+            <button type="button" onclick="document.getElementById('signup-avatar-file-input').click()" class="px-2.5 py-1.5 rounded-xl bg-pulse-600 hover:bg-pulse-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-sm transition-colors">
+              <i class="fa-solid fa-camera"></i>
+              <span>Upload</span>
+            </button>
+            <button type="button" onclick="randomizeAvatarSeed()" title="Randomize Avatar" class="px-2.5 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-pulse-500 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1 transition-colors">
+              <i class="fa-solid fa-shuffle text-pulse-500"></i>
+              <span class="hidden sm:inline">Shuffle</span>
+            </button>
+          </div>
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -255,7 +264,7 @@
 
         <!-- Dynamic User Status Pill -->
         <div id="user-profile-pill" onclick="switchTab('profile')" class="flex items-center justify-center xl:justify-start gap-3 p-2.5 rounded-2xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60 cursor-pointer transition-colors">
-          <img id="sidebar-user-avatar" src="https://placehold.co/100x100/6366f1/ffffff?text=U" alt="User" class="w-10 h-10 rounded-full object-cover ring-2 ring-pulse-500/30 shrink-0" />
+          <img id="sidebar-user-avatar" src="https://placehold.co/100x100/6366f1/ffffff?text=U" alt="User" class="w-10 h-10 rounded-full object-cover ring-2 ring-pulse-500/30 shrink-0 bg-white" />
           <div class="hidden xl:block min-w-0 flex-1">
             <p id="sidebar-user-name" class="text-sm font-bold truncate">User</p>
             <p id="sidebar-user-handle" class="text-xs text-slate-500 dark:text-slate-400 truncate">View profile</p>
@@ -307,8 +316,18 @@
         </div>
         <div class="px-4 sm:px-6 pb-5">
           <div class="flex justify-between items-end -mt-12 sm:-mt-14 mb-3">
-            <img id="profile-banner-avatar" src="https://placehold.co/120x120/6366f1/ffffff?text=U" alt="User Profile" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover ring-4 ring-white dark:ring-slate-950 shadow-md bg-white" />
-            <div class="flex items-center gap-2">
+            <div class="relative group">
+              <img id="profile-banner-avatar" src="https://placehold.co/120x120/6366f1/ffffff?text=U" alt="User Profile" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover ring-4 ring-white dark:ring-slate-950 shadow-md bg-white" />
+              <input id="profile-avatar-file-input" type="file" accept="image/*" onchange="handleProfileAvatarUpload(event)" class="hidden" />
+              <button type="button" onclick="document.getElementById('profile-avatar-file-input').click()" title="Upload New Profile Picture" class="absolute bottom-0.5 right-0.5 w-8 h-8 sm:w-9 sm:h-9 rounded-full bg-pulse-600 hover:bg-pulse-700 text-white ring-2 ring-white dark:ring-slate-950 shadow-md flex items-center justify-center transition-transform active:scale-95">
+                <i class="fa-solid fa-camera text-xs sm:text-sm"></i>
+              </button>
+            </div>
+            <div class="flex items-center gap-2 flex-wrap justify-end">
+              <button type="button" onclick="document.getElementById('profile-avatar-file-input').click()" class="px-3.5 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold transition-colors flex items-center gap-1.5">
+                <i class="fa-solid fa-image text-pulse-500"></i>
+                <span>Change Photo</span>
+              </button>
               <button onclick="toggleEditBioBox()" class="px-3.5 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold transition-colors">
                 Edit Bio
               </button>
@@ -361,7 +380,7 @@
       <!-- Create Post Composer -->
       <section id="composer-section" class="p-4 border-b border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/40">
         <div class="flex gap-3.5">
-          <img id="composer-user-avatar" src="https://placehold.co/100x100/6366f1/ffffff?text=U" alt="Avatar" class="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-slate-100 dark:ring-slate-800" />
+          <img id="composer-user-avatar" src="https://placehold.co/100x100/6366f1/ffffff?text=U" alt="Avatar" class="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-slate-100 dark:ring-slate-800 bg-white" />
           <div class="flex-1 min-w-0">
             <div id="selected-mood-badge" class="hidden mb-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-pulse-50 dark:bg-pulse-950/80 text-pulse-600 dark:text-pulse-300 border border-pulse-200 dark:border-pulse-800">
               <span id="selected-mood-text">✨ Inspired</span>
@@ -424,7 +443,7 @@
         <!-- Rendered dynamically -->
       </div>
 
-      <!-- Blank State (Strictly empty when no posts exist in Firestore) -->
+      <!-- Blank State (Strictly empty when no posts exist) -->
       <div id="empty-state" class="hidden py-20 px-6 text-center">
         <div class="w-16 h-16 mx-auto mb-4 rounded-3xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-slate-400 text-2xl">
           <i id="empty-state-icon" class="fa-regular fa-compass"></i>
@@ -486,11 +505,13 @@
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
     import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-    import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+    import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
     // Initialize Firebase safely
     const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-social-default-app';
-    let app, auth, db;
+    let app = null;
+    let auth = null;
+    let db = null;
     let firebaseReady = false;
 
     try {
@@ -502,10 +523,10 @@
         firebaseReady = true;
       }
     } catch (e) {
-      console.warn("Firebase initialization warning:", e);
+      console.warn("Firebase initialization fallback:", e);
     }
 
-    // Global In-Memory + Firestore-Synced State (No localStorage)
+    // Global In-Memory + Firestore-Synced State
     window.appState = {
       firebaseUser: null,
       currentAccount: null,
@@ -516,172 +537,295 @@
       activeTag: null,
       selectedMood: null,
       attachedPhoto: null,
-      avatarSeed: 'Pulse' + Math.floor(100 + Math.random() * 900)
+      avatarSeed: 'Pulse' + Math.floor(100 + Math.random() * 900),
+      uploadedAvatarDataUrl: null
     };
 
     // Set initial preview avatar
-    document.getElementById('signup-avatar-preview').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(window.appState.avatarSeed)}`;
+    document.getElementById('signup-avatar-preview').src =
+      `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(window.appState.avatarSeed)}`;
 
-    // Utility: SHA-256 Password Hashing
-    async function hashPassword(plainText) {
-      const encoder = new TextEncoder();
-      const data = encoder.encode(plainText + '::pulse_salt_2026');
-      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-      const hashArray = Array.from(new Uint8Array(hashBuffer));
-      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-    }
+    // ==================== AUTHENTICATION & FIRESTORE SYNC ====================
+    async function initCloudSync() {
+      if (!firebaseReady || !auth || !db) return;
 
-    // Step 1: Authenticate Firebase Session FIRST before any Firestore queries (RULE 3)
-    async function ensureFirebaseAuth() {
-      if (!firebaseReady || !auth) return null;
-      if (auth.currentUser) return auth.currentUser;
       try {
         if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
-          const cred = await signInWithCustomToken(auth, __initial_auth_token);
-          return cred.user;
+          await signInWithCustomToken(auth, __initial_auth_token);
         } else {
-          const cred = await signInAnonymously(auth);
-          return cred.user;
+          await signInAnonymously(auth);
         }
       } catch (err) {
-        console.error("Firebase session auth error:", err);
-        return null;
+        console.warn("Firebase auth warning:", err);
       }
-    }
 
-    let unsubscribePosts = null;
-    let unsubscribeAccounts = null;
+      onAuthStateChanged(auth, (user) => {
+        window.appState.firebaseUser = user;
+        if (!user) return;
 
-    async function bootstrapRealtimeSync() {
-      const fbUser = await ensureFirebaseAuth();
-      window.appState.firebaseUser = fbUser;
-      if (!fbUser || !db) return;
+        // Subscribe to public accounts collection (Rule 1 & Rule 2)
+        const accountsCol = collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
+        onSnapshot(
+          accountsCol,
+          (snapshot) => {
+            const loadedAccounts = [];
+            snapshot.forEach((docSnap) => {
+              loadedAccounts.push({ docId: docSnap.id, ...docSnap.data() });
+            });
+            loadedAccounts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            window.appState.accounts = loadedAccounts;
 
-      // Subscribe to Public Accounts Collection
-      if (unsubscribeAccounts) unsubscribeAccounts();
-      const accountsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
-      unsubscribeAccounts = onSnapshot(query(accountsColRef), (snapshot) => {
-        const list = [];
-        snapshot.forEach((docSnap) => {
-          list.push({ docId: docSnap.id, ...docSnap.data() });
-        });
-        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        window.appState.accounts = list;
-
-        // Keep currentAccount fresh if updated remotely
-        if (window.appState.currentAccount) {
-          const refreshed = list.find(acc => acc.accountId === window.appState.currentAccount.accountId);
-          if (refreshed) {
-            window.appState.currentAccount = refreshed;
-            updateAuthUI();
-            updateBookmarkCounter();
+            // Keep active account synced if logged in
+            if (window.appState.currentAccount) {
+              const latest = loadedAccounts.find(
+                (a) => a.accountId === window.appState.currentAccount.accountId
+              );
+              if (latest) {
+                window.appState.currentAccount = latest;
+                updateAuthUI();
+                updateBookmarkCounter();
+              }
+            }
+            renderRegisteredMembers();
+          },
+          (error) => {
+            console.error("Accounts snapshot error:", error);
           }
-        }
-        renderRegisteredMembers();
-      }, (error) => {
-        console.error("Accounts sync error:", error);
-      });
+        );
 
-      // Subscribe to Public Posts Collection
-      if (unsubscribePosts) unsubscribePosts();
-      const postsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
-      unsubscribePosts = onSnapshot(query(postsColRef), (snapshot) => {
-        const loadedPosts = [];
-        snapshot.forEach((docSnap) => {
-          loadedPosts.push({ id: docSnap.id, ...docSnap.data() });
-        });
-        loadedPosts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
-        window.appState.posts = loadedPosts;
-        renderFeed();
-        updateProfilePostCount();
-        updateBookmarkCounter();
-      }, (error) => {
-        console.error("Posts sync error:", error);
-        showToast("Database sync error.");
+        // Subscribe to public posts collection (Rule 1 & Rule 2)
+        const postsCol = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+        onSnapshot(
+          postsCol,
+          (snapshot) => {
+            const loadedPosts = [];
+            snapshot.forEach((docSnap) => {
+              loadedPosts.push({ id: docSnap.id, ...docSnap.data() });
+            });
+            loadedPosts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+            window.appState.posts = loadedPosts;
+
+            updateProfilePostCount();
+            renderFeed();
+          },
+          (error) => {
+            console.error("Posts snapshot error:", error);
+          }
+        );
       });
     }
 
-    if (firebaseReady && auth) {
-      onAuthStateChanged(auth, (fbUser) => {
-        if (fbUser && !window.appState.firebaseUser) {
-          window.appState.firebaseUser = fbUser;
-        }
-      });
-      bootstrapRealtimeSync();
+    initCloudSync();
+
+    // ==================== AUTH MODAL UI & ACCOUNT HANDLERS ====================
+    function showAuthError(message) {
+      const box = document.getElementById('auth-error-box');
+      const text = document.getElementById('auth-error-text');
+      text.textContent = message;
+      box.classList.remove('hidden');
     }
 
-    // ==================== ACCOUNT CREATION & SIGN IN ====================
-    window.switchAuthMode = function(mode) {
-      const isSignup = mode === 'signup';
-      document.getElementById('signup-form').classList.toggle('hidden', !isSignup);
-      document.getElementById('signin-form').classList.toggle('hidden', isSignup);
+    function hideAuthError() {
       document.getElementById('auth-error-box').classList.add('hidden');
+    }
 
-      const signupTab = document.getElementById('tab-signup-btn');
-      const signinTab = document.getElementById('tab-signin-btn');
+    window.switchAuthMode = function(mode) {
+      hideAuthError();
+      const signupForm = document.getElementById('signup-form');
+      const signinForm = document.getElementById('signin-form');
+      const tabSignup = document.getElementById('tab-signup-btn');
+      const tabSignin = document.getElementById('tab-signin-btn');
+      const title = document.getElementById('auth-modal-title');
+      const subtitle = document.getElementById('auth-modal-subtitle');
 
-      if (isSignup) {
-        document.getElementById('auth-modal-title').textContent = 'Create your Pulse account';
-        document.getElementById('auth-modal-subtitle').textContent = 'Sign up to post, reply, and connect in real time';
-        signupTab.className = 'py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 text-pulse-600 dark:text-pulse-400 shadow-sm transition-all';
-        signinTab.className = 'py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all';
+      if (mode === 'signup') {
+        signupForm.classList.remove('hidden');
+        signinForm.classList.add('hidden');
+        tabSignup.className = 'py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 text-pulse-600 dark:text-pulse-400 shadow-sm transition-all';
+        tabSignin.className = 'py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all';
+        title.textContent = 'Create your Pulse account';
+        subtitle.textContent = 'Sign up to post, reply, and connect in real time';
       } else {
-        document.getElementById('auth-modal-title').textContent = 'Welcome back to Pulse';
-        document.getElementById('auth-modal-subtitle').textContent = 'Sign in with your username or email';
-        signinTab.className = 'py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 text-pulse-600 dark:text-pulse-400 shadow-sm transition-all';
-        signupTab.className = 'py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all';
+        signupForm.classList.add('hidden');
+        signinForm.classList.remove('hidden');
+        tabSignin.className = 'py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 text-pulse-600 dark:text-pulse-400 shadow-sm transition-all';
+        tabSignup.className = 'py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all';
+        title.textContent = 'Welcome back to Pulse';
+        subtitle.textContent = 'Sign in with your username or email';
       }
+    };
+
+    window.togglePasswordVisibility = function(inputId, btn) {
+      const input = document.getElementById(inputId);
+      if (!input) return;
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      btn.innerHTML = isPassword
+        ? '<i class="fa-regular fa-eye-slash"></i>'
+        : '<i class="fa-regular fa-eye"></i>';
     };
 
     window.sanitizeHandleInput = function(input) {
       input.value = input.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
     };
 
-    window.randomizeAvatarSeed = function() {
-      window.appState.avatarSeed = 'Pulse' + Math.floor(1000 + Math.random() * 9000);
-      document.getElementById('signup-avatar-preview').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(window.appState.avatarSeed)}`;
-    };
-
-    window.togglePasswordVisibility = function(inputId, btn) {
-      const input = document.getElementById(inputId);
-      const isPassword = input.type === 'password';
-      input.type = isPassword ? 'text' : 'password';
-      btn.innerHTML = isPassword ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
-    };
-
-    function showAuthError(msg) {
-      const box = document.getElementById('auth-error-box');
-      document.getElementById('auth-error-text').textContent = msg;
-      box.classList.remove('hidden');
+    async function hashPassword(password) {
+      try {
+        if (window.crypto && window.crypto.subtle) {
+          const msgUint8 = new TextEncoder().encode(password);
+          const hashBuffer = await window.crypto.subtle.digest('SHA-256', msgUint8);
+          const hashArray = Array.from(new Uint8Array(hashBuffer));
+          return hashArray.map((b) => b.toString(16).padStart(2, '0')).join('');
+        }
+      } catch (e) {
+        console.warn("SubtleCrypto fallback used:", e);
+      }
+      // Fallback hash for non-HTTPS contexts
+      let hash = 0;
+      for (let i = 0; i < password.length; i++) {
+        hash = (hash << 5) - hash + password.charCodeAt(i);
+        hash |= 0;
+      }
+      return 'fb_' + Math.abs(hash).toString(16);
     }
+
+    // Resize & center-crop uploaded image so it fits cleanly and reliably in Firestore
+    function processAvatarImageFile(file) {
+      return new Promise((resolve, reject) => {
+        if (!file || !file.type.startsWith('image/')) {
+          reject(new Error('Please select a valid image file (PNG, JPG, or WebP).'));
+          return;
+        }
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          const img = new Image();
+          img.onload = () => {
+            try {
+              const size = 220;
+              const canvas = document.createElement('canvas');
+              canvas.width = size;
+              canvas.height = size;
+              const ctx = canvas.getContext('2d');
+
+              // Center-crop to square
+              const minSide = Math.min(img.width, img.height);
+              const sx = (img.width - minSide) / 2;
+              const sy = (img.height - minSide) / 2;
+
+              ctx.fillStyle = '#ffffff';
+              ctx.fillRect(0, 0, size, size);
+              ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+              const compressedDataUrl = canvas.toDataURL('image/jpeg', 0.82);
+              resolve(compressedDataUrl);
+            } catch (err) {
+              reject(new Error('Could not process image.'));
+            }
+          };
+          img.onerror = () => reject(new Error('Failed to load selected image.'));
+          img.src = e.target.result;
+        };
+        reader.onerror = () => reject(new Error('Failed to read image file.'));
+        reader.readAsDataURL(file);
+      });
+    }
+
+    window.handleSignupAvatarUpload = async function(event) {
+      const file = event.target.files && event.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await processAvatarImageFile(file);
+        window.appState.uploadedAvatarDataUrl = dataUrl;
+        document.getElementById('signup-avatar-preview').src = dataUrl;
+        document.getElementById('signup-avatar-status').textContent = 'Custom photo ready!';
+        showToast('Profile picture selected!');
+      } catch (err) {
+        showAuthError(err.message || 'Could not upload photo.');
+      } finally {
+        event.target.value = '';
+      }
+    };
+
+    window.handleProfileAvatarUpload = async function(event) {
+      const file = event.target.files && event.target.files[0];
+      const acc = window.appState.currentAccount;
+      if (!file || !acc) return;
+
+      try {
+        showToast('Uploading profile picture...');
+        const newAvatarUrl = await processAvatarImageFile(file);
+        acc.avatarUrl = newAvatarUrl;
+        updateAuthUI();
+        renderRegisteredMembers();
+
+        // Sync to Firestore if connected
+        if (firebaseReady && db && acc.docId) {
+          const accRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', acc.docId);
+          await updateDoc(accRef, { avatarUrl: newAvatarUrl });
+
+          // Also update avatar on user's existing posts
+          const userPosts = window.appState.posts.filter((p) => p.uid === acc.accountId);
+          await Promise.all(
+            userPosts.map((p) => {
+              const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', p.id);
+              return updateDoc(postRef, { authorAvatar: newAvatarUrl });
+            })
+          );
+        } else {
+          window.appState.posts.forEach((p) => {
+            if (p.uid === acc.accountId) p.authorAvatar = newAvatarUrl;
+          });
+        }
+
+        renderFeed();
+        showToast('Profile picture updated!');
+      } catch (err) {
+        console.error('Profile avatar upload failed:', err);
+        showToast(err.message || 'Could not update profile picture.');
+      } finally {
+        event.target.value = '';
+      }
+    };
+
+    window.randomizeAvatarSeed = function() {
+      window.appState.uploadedAvatarDataUrl = null;
+      window.appState.avatarSeed = 'Pulse' + Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('signup-avatar-preview').src =
+        `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(window.appState.avatarSeed)}`;
+      document.getElementById('signup-avatar-status').textContent = 'Upload a photo or shuffle';
+    };
 
     window.handleCreateAccount = async function(event) {
       event.preventDefault();
-      document.getElementById('auth-error-box').classList.add('hidden');
+      hideAuthError();
 
       const name = document.getElementById('signup-name').value.trim();
       const rawHandle = document.getElementById('signup-handle').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
       const email = document.getElementById('signup-email').value.trim().toLowerCase();
       const password = document.getElementById('signup-password').value;
-      const bio = document.getElementById('signup-bio').value.trim() || 'Exploring the Pulse network.';
+      const bio = document.getElementById('signup-bio').value.trim() || 'New member on Pulse.';
 
       if (!name || !rawHandle || !email || password.length < 4) {
-        showAuthError('Please fill out all required fields (password min 4 characters).');
+        showAuthError('Please fill in all required fields (password min 4 characters).');
         return;
       }
 
       const handle = '@' + rawHandle;
 
-      // Check duplicates in loaded accounts
-      const handleExists = window.appState.accounts.some(acc => acc.handle.toLowerCase() === handle);
-      if (handleExists) {
-        showAuthError(`The username ${handle} is already taken. Try another one!`);
+      // Check for duplicate handle or email
+      const handleTaken = window.appState.accounts.some(
+        (a) => (a.handle || '').toLowerCase() === handle
+      );
+      if (handleTaken) {
+        showAuthError(`Username ${handle} is already taken. Try another one!`);
         return;
       }
 
-      const emailExists = window.appState.accounts.some(acc => acc.email.toLowerCase() === email);
-      if (emailExists) {
-        showAuthError('An account with that email already exists. Switch to Sign In.');
+      const emailTaken = window.appState.accounts.some(
+        (a) => (a.email || '').toLowerCase() === email
+      );
+      if (emailTaken) {
+        showAuthError('An account with this email already exists. Try signing in!');
         return;
       }
 
@@ -690,14 +834,11 @@
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Creating Account...</span>';
 
       try {
-        const fbUser = await ensureFirebaseAuth();
-        if (!fbUser || !db) {
-          throw new Error('Cloud connection unavailable. Please try again.');
-        }
-
         const passwordHash = await hashPassword(password);
         const accountId = 'acc_' + crypto.randomUUID();
-        const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(window.appState.avatarSeed)}`;
+        const avatarUrl =
+          window.appState.uploadedAvatarDataUrl ||
+          `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(window.appState.avatarSeed)}`;
 
         const newAccount = {
           accountId,
@@ -711,17 +852,25 @@
           createdAt: Date.now()
         };
 
-        const accountsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
-        const docRef = await addDoc(accountsColRef, newAccount);
-        newAccount.docId = docRef.id;
+        if (firebaseReady && db && window.appState.firebaseUser) {
+          const accountsCol = collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
+          const docRef = await addDoc(accountsCol, newAccount);
+          newAccount.docId = docRef.id;
+        } else {
+          newAccount.docId = 'local_' + accountId;
+          window.appState.accounts.unshift(newAccount);
+          renderRegisteredMembers();
+        }
 
         window.appState.currentAccount = newAccount;
+        window.appState.uploadedAvatarDataUrl = null;
         document.getElementById('signup-form').reset();
+        document.getElementById('signup-avatar-status').textContent = 'Upload a photo or shuffle';
         enterMainApp();
         showToast(`Account created! Welcome, ${name}`);
       } catch (err) {
-        console.error('Account creation failed:', err);
-        showAuthError(err.message || 'Could not create account. Please try again.');
+        console.error('Create account error:', err);
+        showAuthError('Could not create account right now. Please try again.');
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>Create Account</span>';
@@ -730,13 +879,13 @@
 
     window.handleSignIn = async function(event) {
       event.preventDefault();
-      document.getElementById('auth-error-box').classList.add('hidden');
+      hideAuthError();
 
       const identifier = document.getElementById('signin-identifier').value.trim().toLowerCase();
       const password = document.getElementById('signin-password').value;
 
       if (!identifier || !password) {
-        showAuthError('Enter your username or email and password.');
+        showAuthError('Please enter your username/email and password.');
         return;
       }
 
@@ -745,21 +894,17 @@
       submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Signing In...</span>';
 
       try {
-        await ensureFirebaseAuth();
+        const passwordHash = await hashPassword(password);
         const normalizedHandle = identifier.startsWith('@') ? identifier : '@' + identifier;
 
-        const matchedAccount = window.appState.accounts.find(acc =>
-          acc.email.toLowerCase() === identifier || acc.handle.toLowerCase() === normalizedHandle
-        );
+        const matchedAccount = window.appState.accounts.find((acc) => {
+          const accEmail = (acc.email || '').toLowerCase();
+          const accHandle = (acc.handle || '').toLowerCase();
+          return (accEmail === identifier || accHandle === normalizedHandle) && acc.passwordHash === passwordHash;
+        });
 
         if (!matchedAccount) {
-          showAuthError('No account found with that username or email. Create one first!');
-          return;
-        }
-
-        const enteredHash = await hashPassword(password);
-        if (enteredHash !== matchedAccount.passwordHash) {
-          showAuthError('Incorrect password. Please try again.');
+          showAuthError('Invalid username/email or password.');
           return;
         }
 
@@ -768,8 +913,8 @@
         enterMainApp();
         showToast(`Welcome back, ${matchedAccount.name}!`);
       } catch (err) {
-        console.error('Sign in failed:', err);
-        showAuthError('Unable to sign in right now.');
+        console.error('Sign in error:', err);
+        showAuthError('Sign in failed. Please try again.');
       } finally {
         submitBtn.disabled = false;
         submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>Sign In to Pulse</span>';
@@ -782,7 +927,7 @@
       updateAuthUI();
       updateBookmarkCounter();
       updateProfilePostCount();
-      renderFeed();
+      window.switchTab('home');
     }
 
     window.triggerSignOut = function() {
@@ -801,54 +946,69 @@
       document.getElementById('sidebar-user-name').textContent = acc.name;
       document.getElementById('sidebar-user-handle').textContent = acc.handle;
       document.getElementById('composer-user-avatar').src = acc.avatarUrl;
+
       document.getElementById('profile-banner-avatar').src = acc.avatarUrl;
       document.getElementById('profile-banner-name').textContent = acc.name;
       document.getElementById('profile-banner-handle').textContent = acc.handle;
       document.getElementById('profile-banner-email').textContent = acc.email;
-      document.getElementById('profile-banner-bio').textContent = acc.bio || 'Exploring the Pulse network.';
+      document.getElementById('profile-banner-bio').textContent = acc.bio || 'New member on Pulse.';
     }
 
     window.toggleEditBioBox = function() {
       const box = document.getElementById('edit-bio-box');
       const input = document.getElementById('edit-bio-input');
-      if (box.classList.contains('hidden') && window.appState.currentAccount) {
-        input.value = window.appState.currentAccount.bio || '';
+      const acc = window.appState.currentAccount;
+      if (!box || !acc) return;
+
+      const isHidden = box.classList.contains('hidden');
+      if (isHidden) {
+        input.value = acc.bio || '';
+        box.classList.remove('hidden');
+        input.focus();
+      } else {
+        box.classList.add('hidden');
       }
-      box.classList.toggle('hidden');
     };
 
     window.saveProfileBio = async function() {
       const acc = window.appState.currentAccount;
-      if (!acc || !acc.docId || !db) return;
-      const newBio = document.getElementById('edit-bio-input').value.trim() || 'Exploring the Pulse network.';
-      try {
-        const accRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', acc.docId);
-        await updateDoc(accRef, { bio: newBio });
-        acc.bio = newBio;
-        updateAuthUI();
-        document.getElementById('edit-bio-box').classList.add('hidden');
-        showToast('Bio updated!');
-      } catch (err) {
-        console.error('Failed to update bio:', err);
-        showToast('Could not update bio.');
+      const input = document.getElementById('edit-bio-input');
+      if (!acc || !input) return;
+
+      const newBio = input.value.trim() || 'New member on Pulse.';
+      acc.bio = newBio;
+      updateAuthUI();
+      document.getElementById('edit-bio-box').classList.add('hidden');
+
+      if (firebaseReady && db && acc.docId) {
+        try {
+          const accRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', acc.docId);
+          await updateDoc(accRef, { bio: newBio });
+        } catch (err) {
+          console.error('Error saving bio:', err);
+        }
       }
+      showToast('Bio updated!');
     };
 
     function renderRegisteredMembers() {
       const container = document.getElementById('registered-members-list');
       const badge = document.getElementById('member-count-badge');
-      const accounts = window.appState.accounts;
-      if (badge) badge.textContent = `${accounts.length} member${accounts.length === 1 ? '' : 's'}`;
-      if (!container) return;
+      const accounts = window.appState.accounts || [];
 
+      if (badge) {
+        badge.textContent = `${accounts.length} online`;
+      }
+
+      if (!container) return;
       if (accounts.length === 0) {
         container.innerHTML = '<p class="text-xs text-slate-500 dark:text-slate-400 px-1">No accounts registered yet.</p>';
         return;
       }
 
-      container.innerHTML = accounts.slice(0, 6).map(acc => `
+      container.innerHTML = accounts.slice(0, 6).map((acc) => `
         <div class="flex items-center gap-2.5 p-1.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-colors">
-          <img src="${acc.avatarUrl}" alt="${escapeHtml(acc.name)}" class="w-9 h-9 rounded-full bg-white ring-1 ring-slate-200 dark:ring-slate-700 shrink-0" />
+          <img src="${acc.avatarUrl}" alt="${escapeHtml(acc.name)}" class="w-9 h-9 rounded-full object-cover bg-white ring-1 ring-slate-200 dark:ring-slate-700 shrink-0" />
           <div class="min-w-0 flex-1">
             <p class="text-xs font-bold truncate">${escapeHtml(acc.name)}</p>
             <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">${escapeHtml(acc.handle)}</p>
@@ -861,7 +1021,7 @@
     // ==================== POSTS, LIKES, COMMENTS & BOOKMARKS ====================
     window.publishPost = async function() {
       const acc = window.appState.currentAccount;
-      if (!acc || !window.appState.firebaseUser || !db) return;
+      if (!acc) return;
 
       const input = document.getElementById('post-input');
       const text = input.value.trim();
@@ -886,8 +1046,15 @@
       };
 
       try {
-        const postsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
-        await addDoc(postsColRef, newPostData);
+        if (firebaseReady && db && window.appState.firebaseUser) {
+          const postsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+          await addDoc(postsColRef, newPostData);
+        } else {
+          window.appState.posts.unshift({ id: 'post_' + crypto.randomUUID(), ...newPostData });
+          updateProfilePostCount();
+          renderFeed();
+        }
+
         input.value = '';
         window.updateCharCount();
         window.clearMood();
@@ -901,31 +1068,41 @@
 
     window.toggleLike = async function(postId) {
       const acc = window.appState.currentAccount;
-      if (!acc || !window.appState.firebaseUser || !db) return;
+      if (!acc) return;
 
-      const post = window.appState.posts.find(p => p.id === postId);
+      const post = window.appState.posts.find((p) => p.id === postId);
       if (!post) return;
 
-      let likes = post.likes || [];
+      let likes = [...(post.likes || [])];
       if (likes.includes(acc.accountId)) {
-        likes = likes.filter(id => id !== acc.accountId);
+        likes = likes.filter((id) => id !== acc.accountId);
       } else {
         likes.push(acc.accountId);
       }
 
-      try {
-        const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
-        await updateDoc(postRef, { likes });
-      } catch (err) {
-        console.error("Error updating likes:", err);
+      post.likes = likes;
+      renderFeed();
+
+      if (firebaseReady && db && window.appState.firebaseUser) {
+        try {
+          const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+          await updateDoc(postRef, { likes });
+        } catch (err) {
+          console.error("Error updating likes:", err);
+        }
       }
     };
 
     window.deletePost = async function(postId) {
-      if (!window.appState.firebaseUser || !db) return;
       try {
-        const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
-        await deleteDoc(postRef);
+        if (firebaseReady && db && window.appState.firebaseUser) {
+          const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+          await deleteDoc(postRef);
+        } else {
+          window.appState.posts = window.appState.posts.filter((p) => p.id !== postId);
+          updateProfilePostCount();
+          renderFeed();
+        }
         showToast("Post deleted successfully");
       } catch (err) {
         console.error("Error deleting post:", err);
@@ -936,13 +1113,13 @@
     window.addComment = async function(event, postId) {
       event.preventDefault();
       const acc = window.appState.currentAccount;
-      if (!acc || !window.appState.firebaseUser || !db) return;
+      if (!acc) return;
 
       const input = document.getElementById(`comment-input-${postId}`);
       const text = input.value.trim();
       if (!text) return;
 
-      const post = window.appState.posts.find(p => p.id === postId);
+      const post = window.appState.posts.find((p) => p.id === postId);
       if (!post) return;
 
       const newComment = {
@@ -955,20 +1132,26 @@
       };
 
       const comments = [...(post.comments || []), newComment];
+      post.comments = comments;
+      input.value = '';
+      renderFeed();
+      const box = document.getElementById(`comments-box-${postId}`);
+      if (box) box.classList.remove('hidden');
 
-      try {
-        const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
-        await updateDoc(postRef, { comments });
-        input.value = '';
-        showToast("Reply added");
-      } catch (err) {
-        console.error("Error adding comment:", err);
+      if (firebaseReady && db && window.appState.firebaseUser) {
+        try {
+          const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+          await updateDoc(postRef, { comments });
+        } catch (err) {
+          console.error("Error adding comment:", err);
+        }
       }
+      showToast("Reply added");
     };
 
     window.toggleBookmark = async function(postId) {
       const acc = window.appState.currentAccount;
-      if (!acc || !acc.docId || !db) return;
+      if (!acc) return;
 
       const currentBookmarks = [...(acc.bookmarks || [])];
       const idx = currentBookmarks.indexOf(postId);
@@ -984,11 +1167,13 @@
       updateBookmarkCounter();
       renderFeed();
 
-      try {
-        const accRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', acc.docId);
-        await updateDoc(accRef, { bookmarks: currentBookmarks });
-      } catch (err) {
-        console.error("Error saving bookmark:", err);
+      if (firebaseReady && db && acc.docId) {
+        try {
+          const accRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', acc.docId);
+          await updateDoc(accRef, { bookmarks: currentBookmarks });
+        } catch (err) {
+          console.error("Error saving bookmark:", err);
+        }
       }
     };
 
@@ -1005,7 +1190,7 @@
     function updateProfilePostCount() {
       const acc = window.appState.currentAccount;
       if (!acc) return;
-      const count = window.appState.posts.filter(p => p.uid === acc.accountId).length;
+      const count = window.appState.posts.filter((p) => p.uid === acc.accountId).length;
       const el = document.getElementById('profile-post-count');
       if (el) el.textContent = count;
     }
@@ -1029,10 +1214,10 @@
       renderFeed();
       updateNavStyles();
       window.scrollTo({ top: 0, behavior: 'smooth' });
-    }
+    };
 
     function updateNavStyles() {
-      document.querySelectorAll('.nav-btn').forEach(btn => {
+      document.querySelectorAll('.nav-btn').forEach((btn) => {
         const isActive = btn.dataset.tab === window.appState.activeTab;
         if (isActive) {
           btn.className = 'nav-btn w-full flex items-center justify-center xl:justify-start gap-4 px-3.5 py-3 rounded-2xl text-base font-bold bg-pulse-50 dark:bg-pulse-950/60 text-pulse-600 dark:text-pulse-400 transition-all';
@@ -1040,7 +1225,7 @@
           btn.className = 'nav-btn w-full flex items-center justify-center xl:justify-start gap-4 px-3.5 py-3 rounded-2xl text-base font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 transition-all';
         }
       });
-      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+      document.querySelectorAll('.mobile-nav-btn').forEach((btn) => {
         const isActive = btn.dataset.tab === window.appState.activeTab;
         if (isActive) {
           btn.classList.remove('text-slate-500');
@@ -1058,63 +1243,63 @@
         window.switchTab('home');
       }
       document.getElementById('post-input').focus();
-    }
+    };
 
     window.updateCharCount = function() {
       const input = document.getElementById('post-input');
       const counter = document.getElementById('char-counter');
       counter.textContent = `${input.value.length}/280`;
-    }
+    };
 
     window.toggleDrawer = function(id) {
-      ['sample-photo-drawer', 'mood-drawer'].forEach(dId => {
+      ['sample-photo-drawer', 'mood-drawer'].forEach((dId) => {
         const el = document.getElementById(dId);
         if (dId === id) el.classList.toggle('hidden');
         else el.classList.add('hidden');
       });
-    }
+    };
 
     window.attachSamplePhoto = function(url) {
       window.appState.attachedPhoto = url;
       document.getElementById('composer-photo-img').src = url;
       document.getElementById('composer-photo-preview').classList.remove('hidden');
       document.getElementById('sample-photo-drawer').classList.add('hidden');
-    }
+    };
 
     window.removeAttachedPhoto = function() {
       window.appState.attachedPhoto = null;
       document.getElementById('composer-photo-preview').classList.add('hidden');
-    }
+    };
 
     window.selectMood = function(mood) {
       window.appState.selectedMood = mood;
       document.getElementById('selected-mood-text').textContent = mood;
       document.getElementById('selected-mood-badge').classList.remove('hidden');
       document.getElementById('mood-drawer').classList.add('hidden');
-    }
+    };
 
     window.clearMood = function() {
       window.appState.selectedMood = null;
       document.getElementById('selected-mood-badge').classList.add('hidden');
-    }
+    };
 
     window.handleSearch = function(query) {
       window.appState.searchQuery = query.trim().toLowerCase();
       renderFeed();
-    }
+    };
 
     window.filterByTag = function(tag) {
       window.appState.activeTag = tag === 'All' ? null : tag;
       document.getElementById('active-filter-tag').textContent = tag;
       document.getElementById('active-filter-bar').classList.toggle('hidden', tag === 'All');
       renderFeed();
-    }
+    };
 
     window.clearTagFilter = function() {
       window.appState.activeTag = null;
       document.getElementById('active-filter-bar').classList.add('hidden');
       renderFeed();
-    }
+    };
 
     // Render Feed & Blank State
     function renderFeed() {
@@ -1123,18 +1308,18 @@
       const acc = window.appState.currentAccount;
       const savedBookmarks = acc && acc.bookmarks ? acc.bookmarks : [];
 
-      let filtered = window.appState.posts.filter(post => {
+      const filtered = window.appState.posts.filter((post) => {
         if (window.appState.activeTab === 'bookmarks' && !savedBookmarks.includes(post.id)) return false;
         if (window.appState.activeTab === 'profile' && (!acc || post.uid !== acc.accountId)) return false;
 
         if (window.appState.activeTag) {
           const t = window.appState.activeTag.toLowerCase();
-          if (!post.content.toLowerCase().includes(t)) return false;
+          if (!(post.content || '').toLowerCase().includes(t)) return false;
         }
 
         if (window.appState.searchQuery) {
           const q = window.appState.searchQuery;
-          if (!post.content.toLowerCase().includes(q) && !post.authorName.toLowerCase().includes(q)) return false;
+          if (!(post.content || '').toLowerCase().includes(q) && !(post.authorName || '').toLowerCase().includes(q)) return false;
         }
         return true;
       });
@@ -1164,7 +1349,7 @@
 
       emptyState.classList.add('hidden');
 
-      container.innerHTML = filtered.map(post => {
+      container.innerHTML = filtered.map((post) => {
         const likesArr = post.likes || [];
         const isLiked = acc && likesArr.includes(acc.accountId);
         const isBookmarked = savedBookmarks.includes(post.id);
@@ -1227,9 +1412,9 @@
                     <button type="submit" class="px-3 py-1 rounded-full bg-pulse-600 text-white text-xs font-semibold">Reply</button>
                   </form>
                   <div class="space-y-2">
-                    ${(post.comments || []).map(c => `
+                    ${(post.comments || []).map((c) => `
                       <div class="flex gap-2 text-xs bg-slate-100/70 dark:bg-slate-800/60 rounded-2xl p-2.5">
-                        <img src="${c.avatar}" class="w-6 h-6 rounded-full object-cover shrink-0" />
+                        <img src="${c.avatar}" class="w-6 h-6 rounded-full object-cover shrink-0 bg-white" />
                         <div class="flex-1">
                           <span class="font-bold">${escapeHtml(c.author)}</span>
                           <span class="text-slate-400 ml-1">${escapeHtml(c.handle || '')}</span>
@@ -1249,7 +1434,7 @@
     window.toggleCommentsSection = function(postId) {
       const box = document.getElementById(`comments-box-${postId}`);
       if (box) box.classList.toggle('hidden');
-    }
+    };
 
     function escapeHtml(str) {
       if (!str) return '';
@@ -1261,12 +1446,18 @@
       const html = document.documentElement;
       html.classList.toggle('dark');
       syncThemeUI();
-    }
+    };
 
     function syncThemeUI() {
       const isDark = document.documentElement.classList.contains('dark');
-      document.getElementById('theme-icon-desktop').className = isDark ? 'fa-solid fa-sun text-amber-400 text-base w-5 text-center' : 'fa-solid fa-moon text-pulse-500 text-base w-5 text-center';
+      document.getElementById('theme-icon-desktop').className = isDark
+        ? 'fa-solid fa-sun text-amber-400 text-base w-5 text-center'
+        : 'fa-solid fa-moon text-pulse-500 text-base w-5 text-center';
       document.getElementById('theme-label-desktop').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+      const mobileIcon = document.getElementById('theme-icon-mobile');
+      if (mobileIcon) {
+        mobileIcon.className = isDark ? 'fa-solid fa-sun text-amber-400 text-sm' : 'fa-solid fa-moon text-sm';
+      }
     }
 
     // Toast Alert
@@ -1274,7 +1465,7 @@
       const container = document.getElementById('toast-container');
       const toast = document.createElement('div');
       toast.className = 'px-4 py-2.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs sm:text-sm font-semibold shadow-xl flex items-center gap-2 animate-post-in';
-      toast.innerHTML = `<i class="fa-solid fa-circle-check text-pulse-400"></i><span>${message}</span>`;
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-pulse-400"></i><span>${escapeHtml(message)}</span>`;
       container.appendChild(toast);
       setTimeout(() => {
         toast.style.opacity = '0';
