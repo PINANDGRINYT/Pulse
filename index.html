@@ -1,0 +1,1292 @@
+<!DOCTYPE html>
+<html lang="en" class="light">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Pulse — Connect & Share</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'system-ui', 'sans-serif'],
+          },
+          colors: {
+            pulse: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              200: '#c7d2fe',
+              300: '#a5b4fc',
+              400: '#818cf8',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+              800: '#3730a3',
+              900: '#312e81',
+            },
+          },
+        },
+      },
+    };
+  </script>
+  <style>
+    ::-webkit-scrollbar {
+      width: 6px;
+      height: 6px;
+    }
+    ::-webkit-scrollbar-track {
+      background: transparent;
+    }
+    ::-webkit-scrollbar-thumb {
+      background: rgba(156, 163, 175, 0.35);
+      border-radius: 9999px;
+    }
+    ::-webkit-scrollbar-thumb:hover {
+      background: rgba(156, 163, 175, 0.55);
+    }
+
+    @keyframes heartPop {
+      0% { transform: scale(1); }
+      35% { transform: scale(1.4); }
+      65% { transform: scale(0.9); }
+      100% { transform: scale(1); }
+    }
+    .animate-heart {
+      animation: heartPop 0.38s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+    }
+
+    @keyframes fadeSlideIn {
+      from {
+        opacity: 0;
+        transform: translateY(-10px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    .animate-post-in {
+      animation: fadeSlideIn 0.32s ease-out forwards;
+    }
+
+    .no-scrollbar::-webkit-scrollbar {
+      display: none;
+    }
+    .no-scrollbar {
+      -ms-overflow-style: none;
+      scrollbar-width: none;
+    }
+  </style>
+</head>
+<body class="bg-slate-50 text-slate-900 dark:bg-slate-950 dark:text-slate-100 font-sans antialiased transition-colors duration-200 selection:bg-pulse-500 selection:text-white">
+
+  <!-- Toast Notification Banner -->
+  <div id="toast-container" class="fixed bottom-20 md:bottom-6 right-4 md:right-6 z-50 flex flex-col gap-2 pointer-events-none"></div>
+
+  <!-- Auth Modal Overlay (Create Account / Sign In) -->
+  <div id="auth-modal" class="fixed inset-0 z-50 bg-slate-950/85 backdrop-blur-md flex items-center justify-center p-4 overflow-y-auto">
+    <div class="w-full max-w-md bg-white dark:bg-slate-900 rounded-3xl p-6 sm:p-8 shadow-2xl border border-slate-200 dark:border-slate-800 animate-post-in my-auto">
+      <div class="text-center mb-5">
+        <div class="w-12 h-12 rounded-2xl bg-gradient-to-tr from-pulse-600 via-violet-600 to-fuchsia-500 flex items-center justify-center text-white shadow-lg mx-auto mb-3">
+          <i class="fa-solid fa-wave-square text-xl"></i>
+        </div>
+        <h2 id="auth-modal-title" class="text-2xl font-extrabold tracking-tight">Create your Pulse account</h2>
+        <p id="auth-modal-subtitle" class="text-xs sm:text-sm text-slate-500 dark:text-slate-400 mt-1">Sign up to post, reply, and connect in real time</p>
+      </div>
+
+      <!-- Mode Switch Tabs -->
+      <div class="grid grid-cols-2 gap-1.5 p-1 rounded-2xl bg-slate-100 dark:bg-slate-800/90 mb-5">
+        <button id="tab-signup-btn" type="button" onclick="switchAuthMode('signup')" class="py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 text-pulse-600 dark:text-pulse-400 shadow-sm transition-all">
+          Create Account
+        </button>
+        <button id="tab-signin-btn" type="button" onclick="switchAuthMode('signin')" class="py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all">
+          Sign In
+        </button>
+      </div>
+
+      <!-- Inline Validation / Error Banner -->
+      <div id="auth-error-box" class="hidden mb-4 p-3 rounded-2xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800/80 text-rose-600 dark:text-rose-300 text-xs font-medium flex items-center gap-2">
+        <i class="fa-solid fa-circle-exclamation shrink-0"></i>
+        <span id="auth-error-text">Please check your details.</span>
+      </div>
+
+      <!-- CREATE ACCOUNT FORM -->
+      <form id="signup-form" onsubmit="handleCreateAccount(event)" class="space-y-3.5">
+        <!-- Avatar Picker Row -->
+        <div class="flex items-center gap-3.5 p-3 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700/80">
+          <img id="signup-avatar-preview" src="https://api.dicebear.com/7.x/avataaars/svg?seed=Pulse1" alt="Avatar preview" class="w-12 h-12 rounded-full bg-white ring-2 ring-pulse-500/40 shrink-0" />
+          <div class="flex-1 min-w-0">
+            <p class="text-xs font-bold text-slate-700 dark:text-slate-200">Profile Avatar</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">Click shuffle to pick a look</p>
+          </div>
+          <button type="button" onclick="randomizeAvatarSeed()" class="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 hover:border-pulse-500 text-xs font-semibold text-slate-700 dark:text-slate-200 flex items-center gap-1.5 transition-colors">
+            <i class="fa-solid fa-shuffle text-pulse-500"></i>
+            <span>Shuffle</span>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Display Name *</label>
+            <input id="signup-name" type="text" required maxlength="32" placeholder="Alex Rivera" class="w-full px-3.5 py-2.5 text-sm rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-pulse-500 focus:outline-none transition-all" />
+          </div>
+          <div>
+            <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Username *</label>
+            <div class="relative">
+              <span class="absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400 text-sm font-semibold">@</span>
+              <input id="signup-handle" type="text" required maxlength="20" oninput="sanitizeHandleInput(this)" placeholder="alexrivera" class="w-full pl-8 pr-3.5 py-2.5 text-sm rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-pulse-500 focus:outline-none transition-all" />
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Email Address *</label>
+          <input id="signup-email" type="email" required placeholder="alex@example.com" class="w-full px-3.5 py-2.5 text-sm rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-pulse-500 focus:outline-none transition-all" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Password *</label>
+          <div class="relative">
+            <input id="signup-password" type="password" required minlength="4" placeholder="Create a password (min 4 chars)" class="w-full pl-3.5 pr-10 py-2.5 text-sm rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-pulse-500 focus:outline-none transition-all" />
+            <button type="button" onclick="togglePasswordVisibility('signup-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1">Short Bio <span class="text-slate-400 font-normal">(optional)</span></label>
+          <input id="signup-bio" type="text" maxlength="120" placeholder="Building cool things & sharing thoughts..." class="w-full px-3.5 py-2.5 text-sm rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-pulse-500 focus:outline-none transition-all" />
+        </div>
+
+        <button id="signup-submit-btn" type="submit" class="w-full py-3.5 rounded-2xl bg-pulse-600 hover:bg-pulse-700 active:scale-[0.99] text-white font-semibold shadow-lg shadow-pulse-600/25 transition-all flex items-center justify-center gap-2 text-sm sm:text-base mt-2">
+          <i class="fa-solid fa-user-plus"></i>
+          <span>Create Account</span>
+        </button>
+      </form>
+
+      <!-- SIGN IN FORM -->
+      <form id="signin-form" onsubmit="handleSignIn(event)" class="hidden space-y-4">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Username or Email *</label>
+          <input id="signin-identifier" type="text" required placeholder="@alexrivera or alex@example.com" class="w-full px-4 py-3 text-sm rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-pulse-500 focus:outline-none transition-all" />
+        </div>
+
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 dark:text-slate-300 mb-1.5">Password *</label>
+          <div class="relative">
+            <input id="signin-password" type="password" required placeholder="Enter your password" class="w-full pl-4 pr-10 py-3 text-sm rounded-2xl bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 focus:border-pulse-500 focus:outline-none transition-all" />
+            <button type="button" onclick="togglePasswordVisibility('signin-password', this)" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs p-1">
+              <i class="fa-regular fa-eye"></i>
+            </button>
+          </div>
+        </div>
+
+        <button id="signin-submit-btn" type="submit" class="w-full py-3.5 rounded-2xl bg-pulse-600 hover:bg-pulse-700 active:scale-[0.99] text-white font-semibold shadow-lg shadow-pulse-600/25 transition-all flex items-center justify-center gap-2 text-sm sm:text-base">
+          <i class="fa-solid fa-right-to-bracket"></i>
+          <span>Sign In to Pulse</span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main App Wrapper -->
+  <div id="main-app-container" class="max-w-7xl mx-auto min-h-screen flex justify-center hidden">
+
+    <!-- ==================== LEFT SIDEBAR ==================== -->
+    <aside class="hidden sm:flex flex-col justify-between w-20 xl:w-64 sticky top-0 h-screen px-3 xl:px-5 py-5 border-r border-slate-200/80 dark:border-slate-800/80 select-none">
+      <div class="space-y-6">
+        <div class="flex items-center justify-between px-2">
+          <button onclick="switchTab('home')" class="flex items-center gap-3 group focus:outline-none">
+            <div class="w-10 h-10 rounded-2xl bg-gradient-to-tr from-pulse-600 via-violet-600 to-fuchsia-500 flex items-center justify-center text-white shadow-lg shadow-pulse-500/25 group-hover:scale-105 transition-transform">
+              <i class="fa-solid fa-wave-square text-lg"></i>
+            </div>
+            <span class="hidden xl:block text-2xl font-extrabold tracking-tight bg-gradient-to-r from-pulse-600 to-fuchsia-500 dark:from-pulse-400 dark:to-fuchsia-400 bg-clip-text text-transparent">
+              Pulse
+            </span>
+          </button>
+        </div>
+
+        <nav id="desktop-nav" class="space-y-1.5">
+          <button data-tab="home" onclick="switchTab('home')" class="nav-btn w-full flex items-center justify-center xl:justify-start gap-4 px-3.5 py-3 rounded-2xl text-base font-medium transition-all duration-150">
+            <i class="fa-solid fa-house text-xl w-6 text-center"></i>
+            <span class="hidden xl:inline">Home Feed</span>
+          </button>
+
+          <button data-tab="explore" onclick="switchTab('explore')" class="nav-btn w-full flex items-center justify-center xl:justify-start gap-4 px-3.5 py-3 rounded-2xl text-base font-medium transition-all duration-150">
+            <i class="fa-solid fa-compass text-xl w-6 text-center"></i>
+            <span class="hidden xl:inline">Explore</span>
+          </button>
+
+          <button data-tab="bookmarks" onclick="switchTab('bookmarks')" class="nav-btn w-full flex items-center justify-center xl:justify-start gap-4 px-3.5 py-3 rounded-2xl text-base font-medium transition-all duration-150">
+            <i class="fa-solid fa-bookmark text-xl w-6 text-center"></i>
+            <span class="hidden xl:inline">Bookmarks</span>
+            <span id="bookmark-count-pill" class="hidden xl:inline-flex ml-auto text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-200/70 dark:bg-slate-800 text-slate-600 dark:text-slate-300">0</span>
+          </button>
+
+          <button data-tab="profile" onclick="switchTab('profile')" class="nav-btn w-full flex items-center justify-center xl:justify-start gap-4 px-3.5 py-3 rounded-2xl text-base font-medium transition-all duration-150">
+            <i class="fa-solid fa-user text-xl w-6 text-center"></i>
+            <span class="hidden xl:inline">Profile</span>
+          </button>
+        </nav>
+
+        <button onclick="focusComposer()" class="w-full py-3.5 px-4 rounded-2xl bg-pulse-600 hover:bg-pulse-700 active:scale-[0.98] text-white font-semibold shadow-md shadow-pulse-600/25 transition-all flex items-center justify-center gap-2">
+          <i class="fa-solid fa-feather-pointed text-lg"></i>
+          <span class="hidden xl:inline">New Pulse</span>
+        </button>
+      </div>
+
+      <div class="space-y-3">
+        <button onclick="toggleTheme()" class="w-full flex items-center justify-center xl:justify-between px-3.5 py-2.5 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:bg-slate-100 dark:hover:bg-slate-800/80 transition-colors text-sm font-medium">
+          <span class="flex items-center gap-3">
+            <i id="theme-icon-desktop" class="fa-solid fa-moon text-pulse-500 text-base w-5 text-center"></i>
+            <span id="theme-label-desktop" class="hidden xl:inline">Dark Mode</span>
+          </span>
+          <span class="hidden xl:inline-block w-9 h-5 rounded-full bg-slate-200 dark:bg-pulse-600 relative transition-colors">
+            <span class="absolute top-0.5 left-0.5 dark:left-4 w-4 h-4 rounded-full bg-white shadow transition-all"></span>
+          </span>
+        </button>
+
+        <!-- Dynamic User Status Pill -->
+        <div id="user-profile-pill" onclick="switchTab('profile')" class="flex items-center justify-center xl:justify-start gap-3 p-2.5 rounded-2xl hover:bg-slate-200/60 dark:hover:bg-slate-800/60 cursor-pointer transition-colors">
+          <img id="sidebar-user-avatar" src="https://placehold.co/100x100/6366f1/ffffff?text=U" alt="User" class="w-10 h-10 rounded-full object-cover ring-2 ring-pulse-500/30 shrink-0" />
+          <div class="hidden xl:block min-w-0 flex-1">
+            <p id="sidebar-user-name" class="text-sm font-bold truncate">User</p>
+            <p id="sidebar-user-handle" class="text-xs text-slate-500 dark:text-slate-400 truncate">View profile</p>
+          </div>
+          <i class="hidden xl:inline fa-solid fa-chevron-right text-slate-400 text-xs"></i>
+        </div>
+      </div>
+    </aside>
+
+    <!-- ==================== CENTRAL FEED ==================== -->
+    <main class="flex-1 max-w-2xl min-w-0 border-r border-slate-200/80 dark:border-slate-800/80 pb-20 sm:pb-8">
+
+      <header class="sticky top-0 z-30 backdrop-blur-xl bg-slate-50/85 dark:bg-slate-950/85 border-b border-slate-200/80 dark:border-slate-800/80 px-4 py-3.5">
+        <div class="flex items-center justify-between gap-3">
+          <div class="flex items-center gap-3">
+            <div class="sm:hidden w-8 h-8 rounded-xl bg-gradient-to-tr from-pulse-600 to-fuchsia-500 flex items-center justify-center text-white shadow">
+              <i class="fa-solid fa-wave-square text-sm"></i>
+            </div>
+            <div>
+              <h1 id="header-title" class="text-lg sm:text-xl font-bold tracking-tight">Home Feed</h1>
+              <p id="header-subtitle" class="text-xs text-slate-500 dark:text-slate-400 hidden sm:block">Live global stream of online pulses</p>
+            </div>
+          </div>
+
+          <div class="flex items-center gap-2">
+            <button onclick="toggleTheme()" aria-label="Toggle Theme" class="sm:hidden w-9 h-9 rounded-full bg-slate-200/70 dark:bg-slate-800 flex items-center justify-center text-slate-700 dark:text-slate-200">
+              <i id="theme-icon-mobile" class="fa-solid fa-moon text-sm"></i>
+            </button>
+            <button onclick="triggerSignOut()" class="sm:hidden px-3 py-1.5 rounded-full bg-rose-600 text-white text-xs font-semibold">
+              Sign Out
+            </button>
+          </div>
+        </div>
+
+        <div id="active-filter-bar" class="hidden mt-3 pt-2.5 border-t border-slate-200/70 dark:border-slate-800/70 flex items-center justify-between text-xs">
+          <span class="text-slate-600 dark:text-slate-300">
+            Showing pulses tagged <strong id="active-filter-tag" class="text-pulse-600 dark:text-pulse-400">#Design</strong>
+          </span>
+          <button onclick="clearTagFilter()" class="px-2.5 py-1 rounded-full bg-slate-200/80 dark:bg-slate-800 hover:bg-slate-300 dark:hover:bg-slate-700 font-medium transition-colors">
+            Clear filter
+          </button>
+        </div>
+      </header>
+
+      <!-- Profile Header View -->
+      <section id="profile-banner-section" class="hidden border-b border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/50">
+        <div class="h-32 sm:h-40 bg-gradient-to-r from-pulse-600 via-violet-600 to-fuchsia-600 relative">
+          <div class="absolute inset-0 opacity-20 bg-[radial-gradient(#fff_1px,transparent_1px)] [background-size:16px_16px]"></div>
+        </div>
+        <div class="px-4 sm:px-6 pb-5">
+          <div class="flex justify-between items-end -mt-12 sm:-mt-14 mb-3">
+            <img id="profile-banner-avatar" src="https://placehold.co/120x120/6366f1/ffffff?text=U" alt="User Profile" class="w-24 h-24 sm:w-28 sm:h-28 rounded-full object-cover ring-4 ring-white dark:ring-slate-950 shadow-md bg-white" />
+            <div class="flex items-center gap-2">
+              <button onclick="toggleEditBioBox()" class="px-3.5 py-1.5 rounded-full border border-slate-300 dark:border-slate-700 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs sm:text-sm font-semibold transition-colors">
+                Edit Bio
+              </button>
+              <button onclick="triggerSignOut()" class="px-4 py-1.5 rounded-full border border-rose-300 text-rose-600 dark:border-rose-800 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 text-xs sm:text-sm font-semibold transition-colors">
+                Sign Out
+              </button>
+            </div>
+          </div>
+          <div>
+            <div class="flex items-center gap-1.5">
+              <h2 id="profile-banner-name" class="text-xl font-extrabold">Member</h2>
+              <i class="fa-solid fa-circle-check text-pulse-500 text-sm"></i>
+            </div>
+            <p id="profile-banner-handle" class="text-sm font-medium text-pulse-600 dark:text-pulse-400">@member</p>
+            <p id="profile-banner-email" class="text-xs text-slate-500 dark:text-slate-400 mt-0.5">member@pulse.app</p>
+            <p id="profile-banner-bio" class="mt-2.5 text-sm leading-relaxed text-slate-700 dark:text-slate-300">
+              New member on Pulse.
+            </p>
+
+            <!-- Inline Bio Editor -->
+            <div id="edit-bio-box" class="hidden mt-3 p-3 rounded-2xl bg-slate-100 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-2">
+              <input id="edit-bio-input" type="text" maxlength="120" placeholder="Write a short bio..." class="w-full px-3 py-2 text-sm rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-pulse-500 focus:outline-none" />
+              <div class="flex justify-end gap-2">
+                <button type="button" onclick="toggleEditBioBox()" class="px-3 py-1 rounded-full text-xs font-semibold text-slate-500 hover:text-slate-700">Cancel</button>
+                <button type="button" onclick="saveProfileBio()" class="px-3.5 py-1 rounded-full bg-pulse-600 text-white text-xs font-semibold">Save Bio</button>
+              </div>
+            </div>
+
+            <div class="flex items-center gap-5 mt-3.5 text-sm">
+              <span><strong id="profile-post-count" class="font-bold text-slate-900 dark:text-white">0</strong> <span class="text-slate-500 dark:text-slate-400">Pulses</span></span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Explore Search Header -->
+      <section id="explore-header-section" class="hidden p-4 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/60 dark:bg-slate-900/40">
+        <div class="relative">
+          <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400"></i>
+          <input id="explore-search-input" type="text" oninput="handleSearch(this.value)" placeholder="Search live pulses or hashtags..." class="w-full pl-11 pr-4 py-3 rounded-2xl bg-slate-100 dark:bg-slate-800/90 border border-slate-200/80 dark:border-slate-700/80 focus:border-pulse-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none text-sm transition-all" />
+        </div>
+        <div class="flex items-center gap-2 mt-3 overflow-x-auto no-scrollbar pb-1">
+          <button onclick="filterByTag('All')" class="px-3.5 py-1.5 rounded-full text-xs font-semibold bg-pulse-600 text-white shrink-0">All Topics</button>
+          <button onclick="filterByTag('#Tech')" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-200/70 dark:bg-slate-800 shrink-0">#Tech</button>
+          <button onclick="filterByTag('#Design')" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-200/70 dark:bg-slate-800 shrink-0">#Design</button>
+          <button onclick="filterByTag('#Thoughts')" class="px-3.5 py-1.5 rounded-full text-xs font-medium bg-slate-200/70 dark:bg-slate-800 shrink-0">#Thoughts</button>
+        </div>
+      </section>
+
+      <!-- Create Post Composer -->
+      <section id="composer-section" class="p-4 border-b border-slate-200/80 dark:border-slate-800/80 bg-white dark:bg-slate-900/40">
+        <div class="flex gap-3.5">
+          <img id="composer-user-avatar" src="https://placehold.co/100x100/6366f1/ffffff?text=U" alt="Avatar" class="w-11 h-11 rounded-full object-cover shrink-0 ring-2 ring-slate-100 dark:ring-slate-800" />
+          <div class="flex-1 min-w-0">
+            <div id="selected-mood-badge" class="hidden mb-2 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold bg-pulse-50 dark:bg-pulse-950/80 text-pulse-600 dark:text-pulse-300 border border-pulse-200 dark:border-pulse-800">
+              <span id="selected-mood-text">✨ Inspired</span>
+              <button onclick="clearMood()" class="hover:text-rose-500 ml-1 focus:outline-none"><i class="fa-solid fa-xmark"></i></button>
+            </div>
+
+            <textarea id="post-input" rows="2" maxlength="280" oninput="updateCharCount()" placeholder="What's pulsing in your world right now?" class="w-full bg-transparent resize-none border-0 focus:ring-0 focus:outline-none text-base sm:text-[17px] placeholder-slate-400 dark:placeholder-slate-500 leading-relaxed"></textarea>
+
+            <div id="composer-photo-preview" class="hidden relative mt-2 mb-3 rounded-2xl overflow-hidden border border-slate-200 dark:border-slate-800">
+              <img id="composer-photo-img" src="" alt="Preview" class="w-full max-h-64 object-cover" />
+              <button onclick="removeAttachedPhoto()" class="absolute top-2.5 right-2.5 w-8 h-8 rounded-full bg-slate-900/75 text-white flex items-center justify-center">
+                <i class="fa-solid fa-xmark text-sm"></i>
+              </button>
+            </div>
+
+            <div id="sample-photo-drawer" class="hidden mb-3 p-2.5 rounded-2xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70">
+              <p class="text-xs font-semibold text-slate-500 dark:text-slate-400 mb-2 px-1">Choose a sample photo:</p>
+              <div class="grid grid-cols-3 gap-2">
+                <button type="button" onclick="attachSamplePhoto('https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=900&q=80')" class="relative aspect-video rounded-xl overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1518770660439-4636190af475?auto=format&fit=crop&w=300&q=70" class="w-full h-full object-cover" />
+                </button>
+                <button type="button" onclick="attachSamplePhoto('https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=900&q=80')" class="relative aspect-video rounded-xl overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1506744038136-46273834b3fb?auto=format&fit=crop&w=300&q=70" class="w-full h-full object-cover" />
+                </button>
+                <button type="button" onclick="attachSamplePhoto('https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=900&q=80')" class="relative aspect-video rounded-xl overflow-hidden">
+                  <img src="https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&w=300&q=70" class="w-full h-full object-cover" />
+                </button>
+              </div>
+            </div>
+
+            <div id="mood-drawer" class="hidden mb-3 p-2.5 rounded-2xl bg-slate-100/90 dark:bg-slate-800/80 border border-slate-200/70 dark:border-slate-700/70 flex flex-wrap gap-1.5">
+              <button type="button" onclick="selectMood('✨ Inspired')" class="px-2.5 py-1 rounded-full text-xs bg-white dark:bg-slate-900 border">✨ Inspired</button>
+              <button type="button" onclick="selectMood('💻 Building')" class="px-2.5 py-1 rounded-full text-xs bg-white dark:bg-slate-900 border">💻 Building</button>
+              <button type="button" onclick="selectMood('☕ Caffeinated')" class="px-2.5 py-1 rounded-full text-xs bg-white dark:bg-slate-900 border">☕ Caffeinated</button>
+            </div>
+
+            <div class="flex items-center justify-between pt-2.5 border-t border-slate-100 dark:border-slate-800/80">
+              <div class="flex items-center gap-1">
+                <button type="button" onclick="toggleDrawer('sample-photo-drawer')" class="p-2 rounded-xl text-pulse-600 dark:text-pulse-400 hover:bg-pulse-50">
+                  <i class="fa-regular fa-image text-base"></i>
+                </button>
+                <button type="button" onclick="toggleDrawer('mood-drawer')" class="p-2 rounded-xl text-pulse-600 dark:text-pulse-400 hover:bg-pulse-50">
+                  <i class="fa-solid fa-tag text-base"></i>
+                </button>
+              </div>
+
+              <div class="flex items-center gap-3">
+                <span id="char-counter" class="text-xs font-medium text-slate-400">0/280</span>
+                <button id="publish-btn" type="button" onclick="publishPost()" class="px-5 py-2 rounded-full bg-pulse-600 hover:bg-pulse-700 text-white text-sm font-semibold shadow-sm shadow-pulse-600/20 transition-all">
+                  Pulse
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Feed Container -->
+      <div id="feed-container" class="divide-y divide-slate-200/80 dark:divide-slate-800/80">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Blank State (Strictly empty when no posts exist in Firestore) -->
+      <div id="empty-state" class="hidden py-20 px-6 text-center">
+        <div class="w-16 h-16 mx-auto mb-4 rounded-3xl bg-slate-100 dark:bg-slate-800/80 flex items-center justify-center text-slate-400 text-2xl">
+          <i id="empty-state-icon" class="fa-regular fa-compass"></i>
+        </div>
+        <h3 id="empty-state-title" class="text-lg font-bold mb-1">No pulses in the feed yet</h3>
+        <p id="empty-state-desc" class="text-sm text-slate-500 dark:text-slate-400 max-w-xs mx-auto mb-5">
+          Be the first pioneer to publish a pulse and kick off the real-time conversation!
+        </p>
+        <button onclick="focusComposer()" class="px-5 py-2 rounded-full bg-pulse-600 hover:bg-pulse-700 text-white text-sm font-semibold transition-colors">
+          Write First Pulse
+        </button>
+      </div>
+    </main>
+
+    <!-- Right Sidebar -->
+    <aside class="hidden lg:block w-80 xl:w-96 sticky top-0 h-screen overflow-y-auto px-6 py-4 space-y-5">
+      <div class="relative">
+        <i class="fa-solid fa-magnifying-glass absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 text-sm"></i>
+        <input id="sidebar-search-input" type="text" oninput="handleSearch(this.value)" placeholder="Search live pulses..." class="w-full pl-11 pr-4 py-2.5 rounded-full bg-slate-200/70 dark:bg-slate-900 border border-transparent focus:border-pulse-500 focus:bg-white dark:focus:bg-slate-900 focus:outline-none text-sm transition-all" />
+      </div>
+
+      <div class="rounded-3xl bg-white dark:bg-slate-900/70 border border-slate-200/80 dark:border-slate-800/80 p-4 shadow-sm">
+        <div class="flex items-center justify-between mb-3 px-1">
+          <h2 class="font-bold text-base tracking-tight">Registered Members</h2>
+          <span id="member-count-badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">0 online</span>
+        </div>
+        <div id="registered-members-list" class="space-y-3">
+          <p class="text-xs text-slate-500 dark:text-slate-400 px-1">No accounts registered yet.</p>
+        </div>
+      </div>
+
+      <footer class="px-2 text-xs text-slate-400 dark:text-slate-500 flex flex-wrap gap-x-3 gap-y-1">
+        <span>© 2026 Pulse Real-Time Cloud</span>
+      </footer>
+    </aside>
+  </div>
+
+  <!-- Mobile Bottom Nav -->
+  <nav id="mobile-nav" class="sm:hidden fixed bottom-0 inset-x-0 z-40 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl border-t border-slate-200/80 dark:border-slate-800/80 flex items-center justify-around py-2 px-1">
+    <button data-tab="home" onclick="switchTab('home')" class="mobile-nav-btn flex flex-col items-center justify-center p-2 rounded-xl text-pulse-600 dark:text-pulse-400">
+      <i class="fa-solid fa-house text-lg"></i>
+      <span class="text-[10px] font-semibold mt-0.5">Feed</span>
+    </button>
+    <button data-tab="explore" onclick="switchTab('explore')" class="mobile-nav-btn flex flex-col items-center justify-center p-2 rounded-xl text-slate-500 dark:text-slate-400">
+      <i class="fa-solid fa-compass text-lg"></i>
+      <span class="text-[10px] font-medium mt-0.5">Explore</span>
+    </button>
+    <button data-tab="bookmarks" onclick="switchTab('bookmarks')" class="mobile-nav-btn flex flex-col items-center justify-center p-2 rounded-xl text-slate-500 dark:text-slate-400">
+      <i class="fa-solid fa-bookmark text-lg"></i>
+      <span class="text-[10px] font-medium mt-0.5">Saved</span>
+    </button>
+    <button data-tab="profile" onclick="switchTab('profile')" class="mobile-nav-btn flex flex-col items-center justify-center p-2 rounded-xl text-slate-500 dark:text-slate-400">
+      <i class="fa-solid fa-user text-lg"></i>
+      <span class="text-[10px] font-medium mt-0.5">Profile</span>
+    </button>
+  </nav>
+
+  <!-- ==================== FIREBASE & APP LOGIC ==================== -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+    import { getAuth, signInWithCustomToken, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+    import { getFirestore, collection, doc, addDoc, updateDoc, deleteDoc, onSnapshot, query } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+    // Initialize Firebase safely
+    const appId = typeof __app_id !== 'undefined' ? __app_id : 'pulse-social-default-app';
+    let app, auth, db;
+    let firebaseReady = false;
+
+    try {
+      if (typeof __firebase_config !== 'undefined' && __firebase_config) {
+        const firebaseConfig = JSON.parse(__firebase_config);
+        app = initializeApp(firebaseConfig);
+        auth = getAuth(app);
+        db = getFirestore(app);
+        firebaseReady = true;
+      }
+    } catch (e) {
+      console.warn("Firebase initialization warning:", e);
+    }
+
+    // Global In-Memory + Firestore-Synced State (No localStorage)
+    window.appState = {
+      firebaseUser: null,
+      currentAccount: null,
+      accounts: [],
+      posts: [],
+      activeTab: 'home',
+      searchQuery: '',
+      activeTag: null,
+      selectedMood: null,
+      attachedPhoto: null,
+      avatarSeed: 'Pulse' + Math.floor(100 + Math.random() * 900)
+    };
+
+    // Set initial preview avatar
+    document.getElementById('signup-avatar-preview').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(window.appState.avatarSeed)}`;
+
+    // Utility: SHA-256 Password Hashing
+    async function hashPassword(plainText) {
+      const encoder = new TextEncoder();
+      const data = encoder.encode(plainText + '::pulse_salt_2026');
+      const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+      const hashArray = Array.from(new Uint8Array(hashBuffer));
+      return hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+    }
+
+    // Step 1: Authenticate Firebase Session FIRST before any Firestore queries (RULE 3)
+    async function ensureFirebaseAuth() {
+      if (!firebaseReady || !auth) return null;
+      if (auth.currentUser) return auth.currentUser;
+      try {
+        if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+          const cred = await signInWithCustomToken(auth, __initial_auth_token);
+          return cred.user;
+        } else {
+          const cred = await signInAnonymously(auth);
+          return cred.user;
+        }
+      } catch (err) {
+        console.error("Firebase session auth error:", err);
+        return null;
+      }
+    }
+
+    let unsubscribePosts = null;
+    let unsubscribeAccounts = null;
+
+    async function bootstrapRealtimeSync() {
+      const fbUser = await ensureFirebaseAuth();
+      window.appState.firebaseUser = fbUser;
+      if (!fbUser || !db) return;
+
+      // Subscribe to Public Accounts Collection
+      if (unsubscribeAccounts) unsubscribeAccounts();
+      const accountsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
+      unsubscribeAccounts = onSnapshot(query(accountsColRef), (snapshot) => {
+        const list = [];
+        snapshot.forEach((docSnap) => {
+          list.push({ docId: docSnap.id, ...docSnap.data() });
+        });
+        list.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        window.appState.accounts = list;
+
+        // Keep currentAccount fresh if updated remotely
+        if (window.appState.currentAccount) {
+          const refreshed = list.find(acc => acc.accountId === window.appState.currentAccount.accountId);
+          if (refreshed) {
+            window.appState.currentAccount = refreshed;
+            updateAuthUI();
+            updateBookmarkCounter();
+          }
+        }
+        renderRegisteredMembers();
+      }, (error) => {
+        console.error("Accounts sync error:", error);
+      });
+
+      // Subscribe to Public Posts Collection
+      if (unsubscribePosts) unsubscribePosts();
+      const postsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+      unsubscribePosts = onSnapshot(query(postsColRef), (snapshot) => {
+        const loadedPosts = [];
+        snapshot.forEach((docSnap) => {
+          loadedPosts.push({ id: docSnap.id, ...docSnap.data() });
+        });
+        loadedPosts.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+        window.appState.posts = loadedPosts;
+        renderFeed();
+        updateProfilePostCount();
+        updateBookmarkCounter();
+      }, (error) => {
+        console.error("Posts sync error:", error);
+        showToast("Database sync error.");
+      });
+    }
+
+    if (firebaseReady && auth) {
+      onAuthStateChanged(auth, (fbUser) => {
+        if (fbUser && !window.appState.firebaseUser) {
+          window.appState.firebaseUser = fbUser;
+        }
+      });
+      bootstrapRealtimeSync();
+    }
+
+    // ==================== ACCOUNT CREATION & SIGN IN ====================
+    window.switchAuthMode = function(mode) {
+      const isSignup = mode === 'signup';
+      document.getElementById('signup-form').classList.toggle('hidden', !isSignup);
+      document.getElementById('signin-form').classList.toggle('hidden', isSignup);
+      document.getElementById('auth-error-box').classList.add('hidden');
+
+      const signupTab = document.getElementById('tab-signup-btn');
+      const signinTab = document.getElementById('tab-signin-btn');
+
+      if (isSignup) {
+        document.getElementById('auth-modal-title').textContent = 'Create your Pulse account';
+        document.getElementById('auth-modal-subtitle').textContent = 'Sign up to post, reply, and connect in real time';
+        signupTab.className = 'py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 text-pulse-600 dark:text-pulse-400 shadow-sm transition-all';
+        signinTab.className = 'py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all';
+      } else {
+        document.getElementById('auth-modal-title').textContent = 'Welcome back to Pulse';
+        document.getElementById('auth-modal-subtitle').textContent = 'Sign in with your username or email';
+        signinTab.className = 'py-2 rounded-xl text-xs sm:text-sm font-bold bg-white dark:bg-slate-900 text-pulse-600 dark:text-pulse-400 shadow-sm transition-all';
+        signupTab.className = 'py-2 rounded-xl text-xs sm:text-sm font-semibold text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-all';
+      }
+    };
+
+    window.sanitizeHandleInput = function(input) {
+      input.value = input.value.toLowerCase().replace(/[^a-z0-9_]/g, '');
+    };
+
+    window.randomizeAvatarSeed = function() {
+      window.appState.avatarSeed = 'Pulse' + Math.floor(1000 + Math.random() * 9000);
+      document.getElementById('signup-avatar-preview').src = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(window.appState.avatarSeed)}`;
+    };
+
+    window.togglePasswordVisibility = function(inputId, btn) {
+      const input = document.getElementById(inputId);
+      const isPassword = input.type === 'password';
+      input.type = isPassword ? 'text' : 'password';
+      btn.innerHTML = isPassword ? '<i class="fa-regular fa-eye-slash"></i>' : '<i class="fa-regular fa-eye"></i>';
+    };
+
+    function showAuthError(msg) {
+      const box = document.getElementById('auth-error-box');
+      document.getElementById('auth-error-text').textContent = msg;
+      box.classList.remove('hidden');
+    }
+
+    window.handleCreateAccount = async function(event) {
+      event.preventDefault();
+      document.getElementById('auth-error-box').classList.add('hidden');
+
+      const name = document.getElementById('signup-name').value.trim();
+      const rawHandle = document.getElementById('signup-handle').value.trim().toLowerCase().replace(/[^a-z0-9_]/g, '');
+      const email = document.getElementById('signup-email').value.trim().toLowerCase();
+      const password = document.getElementById('signup-password').value;
+      const bio = document.getElementById('signup-bio').value.trim() || 'Exploring the Pulse network.';
+
+      if (!name || !rawHandle || !email || password.length < 4) {
+        showAuthError('Please fill out all required fields (password min 4 characters).');
+        return;
+      }
+
+      const handle = '@' + rawHandle;
+
+      // Check duplicates in loaded accounts
+      const handleExists = window.appState.accounts.some(acc => acc.handle.toLowerCase() === handle);
+      if (handleExists) {
+        showAuthError(`The username ${handle} is already taken. Try another one!`);
+        return;
+      }
+
+      const emailExists = window.appState.accounts.some(acc => acc.email.toLowerCase() === email);
+      if (emailExists) {
+        showAuthError('An account with that email already exists. Switch to Sign In.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('signup-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Creating Account...</span>';
+
+      try {
+        const fbUser = await ensureFirebaseAuth();
+        if (!fbUser || !db) {
+          throw new Error('Cloud connection unavailable. Please try again.');
+        }
+
+        const passwordHash = await hashPassword(password);
+        const accountId = 'acc_' + crypto.randomUUID();
+        const avatarUrl = `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(window.appState.avatarSeed)}`;
+
+        const newAccount = {
+          accountId,
+          name,
+          handle,
+          email,
+          passwordHash,
+          bio,
+          avatarUrl,
+          bookmarks: [],
+          createdAt: Date.now()
+        };
+
+        const accountsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'accounts');
+        const docRef = await addDoc(accountsColRef, newAccount);
+        newAccount.docId = docRef.id;
+
+        window.appState.currentAccount = newAccount;
+        document.getElementById('signup-form').reset();
+        enterMainApp();
+        showToast(`Account created! Welcome, ${name}`);
+      } catch (err) {
+        console.error('Account creation failed:', err);
+        showAuthError(err.message || 'Could not create account. Please try again.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-user-plus"></i><span>Create Account</span>';
+      }
+    };
+
+    window.handleSignIn = async function(event) {
+      event.preventDefault();
+      document.getElementById('auth-error-box').classList.add('hidden');
+
+      const identifier = document.getElementById('signin-identifier').value.trim().toLowerCase();
+      const password = document.getElementById('signin-password').value;
+
+      if (!identifier || !password) {
+        showAuthError('Enter your username or email and password.');
+        return;
+      }
+
+      const submitBtn = document.getElementById('signin-submit-btn');
+      submitBtn.disabled = true;
+      submitBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i><span>Signing In...</span>';
+
+      try {
+        await ensureFirebaseAuth();
+        const normalizedHandle = identifier.startsWith('@') ? identifier : '@' + identifier;
+
+        const matchedAccount = window.appState.accounts.find(acc =>
+          acc.email.toLowerCase() === identifier || acc.handle.toLowerCase() === normalizedHandle
+        );
+
+        if (!matchedAccount) {
+          showAuthError('No account found with that username or email. Create one first!');
+          return;
+        }
+
+        const enteredHash = await hashPassword(password);
+        if (enteredHash !== matchedAccount.passwordHash) {
+          showAuthError('Incorrect password. Please try again.');
+          return;
+        }
+
+        window.appState.currentAccount = matchedAccount;
+        document.getElementById('signin-form').reset();
+        enterMainApp();
+        showToast(`Welcome back, ${matchedAccount.name}!`);
+      } catch (err) {
+        console.error('Sign in failed:', err);
+        showAuthError('Unable to sign in right now.');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i><span>Sign In to Pulse</span>';
+      }
+    };
+
+    function enterMainApp() {
+      document.getElementById('auth-modal').classList.add('hidden');
+      document.getElementById('main-app-container').classList.remove('hidden');
+      updateAuthUI();
+      updateBookmarkCounter();
+      updateProfilePostCount();
+      renderFeed();
+    }
+
+    window.triggerSignOut = function() {
+      window.appState.currentAccount = null;
+      document.getElementById('main-app-container').classList.add('hidden');
+      document.getElementById('auth-modal').classList.remove('hidden');
+      window.switchAuthMode('signin');
+      showToast('Signed out');
+    };
+
+    function updateAuthUI() {
+      const acc = window.appState.currentAccount;
+      if (!acc) return;
+
+      document.getElementById('sidebar-user-avatar').src = acc.avatarUrl;
+      document.getElementById('sidebar-user-name').textContent = acc.name;
+      document.getElementById('sidebar-user-handle').textContent = acc.handle;
+      document.getElementById('composer-user-avatar').src = acc.avatarUrl;
+      document.getElementById('profile-banner-avatar').src = acc.avatarUrl;
+      document.getElementById('profile-banner-name').textContent = acc.name;
+      document.getElementById('profile-banner-handle').textContent = acc.handle;
+      document.getElementById('profile-banner-email').textContent = acc.email;
+      document.getElementById('profile-banner-bio').textContent = acc.bio || 'Exploring the Pulse network.';
+    }
+
+    window.toggleEditBioBox = function() {
+      const box = document.getElementById('edit-bio-box');
+      const input = document.getElementById('edit-bio-input');
+      if (box.classList.contains('hidden') && window.appState.currentAccount) {
+        input.value = window.appState.currentAccount.bio || '';
+      }
+      box.classList.toggle('hidden');
+    };
+
+    window.saveProfileBio = async function() {
+      const acc = window.appState.currentAccount;
+      if (!acc || !acc.docId || !db) return;
+      const newBio = document.getElementById('edit-bio-input').value.trim() || 'Exploring the Pulse network.';
+      try {
+        const accRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', acc.docId);
+        await updateDoc(accRef, { bio: newBio });
+        acc.bio = newBio;
+        updateAuthUI();
+        document.getElementById('edit-bio-box').classList.add('hidden');
+        showToast('Bio updated!');
+      } catch (err) {
+        console.error('Failed to update bio:', err);
+        showToast('Could not update bio.');
+      }
+    };
+
+    function renderRegisteredMembers() {
+      const container = document.getElementById('registered-members-list');
+      const badge = document.getElementById('member-count-badge');
+      const accounts = window.appState.accounts;
+      if (badge) badge.textContent = `${accounts.length} member${accounts.length === 1 ? '' : 's'}`;
+      if (!container) return;
+
+      if (accounts.length === 0) {
+        container.innerHTML = '<p class="text-xs text-slate-500 dark:text-slate-400 px-1">No accounts registered yet.</p>';
+        return;
+      }
+
+      container.innerHTML = accounts.slice(0, 6).map(acc => `
+        <div class="flex items-center gap-2.5 p-1.5 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-800/70 transition-colors">
+          <img src="${acc.avatarUrl}" alt="${escapeHtml(acc.name)}" class="w-9 h-9 rounded-full bg-white ring-1 ring-slate-200 dark:ring-slate-700 shrink-0" />
+          <div class="min-w-0 flex-1">
+            <p class="text-xs font-bold truncate">${escapeHtml(acc.name)}</p>
+            <p class="text-[11px] text-slate-500 dark:text-slate-400 truncate">${escapeHtml(acc.handle)}</p>
+          </div>
+          <span class="w-2 h-2 rounded-full bg-emerald-500 shrink-0"></span>
+        </div>
+      `).join('');
+    }
+
+    // ==================== POSTS, LIKES, COMMENTS & BOOKMARKS ====================
+    window.publishPost = async function() {
+      const acc = window.appState.currentAccount;
+      if (!acc || !window.appState.firebaseUser || !db) return;
+
+      const input = document.getElementById('post-input');
+      const text = input.value.trim();
+      if (!text && !window.appState.attachedPhoto) {
+        showToast("Write a message or attach a photo first!");
+        input.focus();
+        return;
+      }
+
+      const newPostData = {
+        uid: acc.accountId,
+        authorName: acc.name,
+        authorHandle: acc.handle,
+        authorAvatar: acc.avatarUrl,
+        createdAt: Date.now(),
+        timestamp: 'Just now',
+        mood: window.appState.selectedMood,
+        content: text,
+        image: window.appState.attachedPhoto,
+        likes: [],
+        comments: []
+      };
+
+      try {
+        const postsColRef = collection(db, 'artifacts', appId, 'public', 'data', 'posts');
+        await addDoc(postsColRef, newPostData);
+        input.value = '';
+        window.updateCharCount();
+        window.clearMood();
+        window.removeAttachedPhoto();
+        showToast("Pulse published!");
+      } catch (err) {
+        console.error("Error publishing post:", err);
+        showToast("Failed to publish. Check network.");
+      }
+    };
+
+    window.toggleLike = async function(postId) {
+      const acc = window.appState.currentAccount;
+      if (!acc || !window.appState.firebaseUser || !db) return;
+
+      const post = window.appState.posts.find(p => p.id === postId);
+      if (!post) return;
+
+      let likes = post.likes || [];
+      if (likes.includes(acc.accountId)) {
+        likes = likes.filter(id => id !== acc.accountId);
+      } else {
+        likes.push(acc.accountId);
+      }
+
+      try {
+        const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+        await updateDoc(postRef, { likes });
+      } catch (err) {
+        console.error("Error updating likes:", err);
+      }
+    };
+
+    window.deletePost = async function(postId) {
+      if (!window.appState.firebaseUser || !db) return;
+      try {
+        const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+        await deleteDoc(postRef);
+        showToast("Post deleted successfully");
+      } catch (err) {
+        console.error("Error deleting post:", err);
+        showToast("Could not delete post.");
+      }
+    };
+
+    window.addComment = async function(event, postId) {
+      event.preventDefault();
+      const acc = window.appState.currentAccount;
+      if (!acc || !window.appState.firebaseUser || !db) return;
+
+      const input = document.getElementById(`comment-input-${postId}`);
+      const text = input.value.trim();
+      if (!text) return;
+
+      const post = window.appState.posts.find(p => p.id === postId);
+      if (!post) return;
+
+      const newComment = {
+        uid: acc.accountId,
+        author: acc.name,
+        handle: acc.handle,
+        avatar: acc.avatarUrl,
+        text: text,
+        time: 'Just now'
+      };
+
+      const comments = [...(post.comments || []), newComment];
+
+      try {
+        const postRef = doc(db, 'artifacts', appId, 'public', 'data', 'posts', postId);
+        await updateDoc(postRef, { comments });
+        input.value = '';
+        showToast("Reply added");
+      } catch (err) {
+        console.error("Error adding comment:", err);
+      }
+    };
+
+    window.toggleBookmark = async function(postId) {
+      const acc = window.appState.currentAccount;
+      if (!acc || !acc.docId || !db) return;
+
+      const currentBookmarks = [...(acc.bookmarks || [])];
+      const idx = currentBookmarks.indexOf(postId);
+      if (idx > -1) {
+        currentBookmarks.splice(idx, 1);
+        showToast("Removed from Bookmarks");
+      } else {
+        currentBookmarks.push(postId);
+        showToast("Saved to Bookmarks");
+      }
+
+      acc.bookmarks = currentBookmarks;
+      updateBookmarkCounter();
+      renderFeed();
+
+      try {
+        const accRef = doc(db, 'artifacts', appId, 'public', 'data', 'accounts', acc.docId);
+        await updateDoc(accRef, { bookmarks: currentBookmarks });
+      } catch (err) {
+        console.error("Error saving bookmark:", err);
+      }
+    };
+
+    function updateBookmarkCounter() {
+      const acc = window.appState.currentAccount;
+      const count = acc && acc.bookmarks ? acc.bookmarks.length : 0;
+      const pill = document.getElementById('bookmark-count-pill');
+      if (pill) {
+        pill.textContent = count;
+        pill.classList.toggle('hidden', count === 0);
+      }
+    }
+
+    function updateProfilePostCount() {
+      const acc = window.appState.currentAccount;
+      if (!acc) return;
+      const count = window.appState.posts.filter(p => p.uid === acc.accountId).length;
+      const el = document.getElementById('profile-post-count');
+      if (el) el.textContent = count;
+    }
+
+    // Tab Navigation
+    window.switchTab = function(tab) {
+      window.appState.activeTab = tab;
+      const titles = {
+        home: ['Home Feed', 'Live global stream of online pulses'],
+        explore: ['Explore', 'Discover trending conversations & hashtags'],
+        bookmarks: ['Bookmarks', 'Pulses you saved for later'],
+        profile: ['User Profile', 'Your account credentials & published pulses']
+      };
+      document.getElementById('header-title').textContent = titles[tab][0];
+      document.getElementById('header-subtitle').textContent = titles[tab][1];
+
+      document.getElementById('composer-section').classList.toggle('hidden', tab !== 'home' && tab !== 'profile');
+      document.getElementById('profile-banner-section').classList.toggle('hidden', tab !== 'profile');
+      document.getElementById('explore-header-section').classList.toggle('hidden', tab !== 'explore');
+
+      renderFeed();
+      updateNavStyles();
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+
+    function updateNavStyles() {
+      document.querySelectorAll('.nav-btn').forEach(btn => {
+        const isActive = btn.dataset.tab === window.appState.activeTab;
+        if (isActive) {
+          btn.className = 'nav-btn w-full flex items-center justify-center xl:justify-start gap-4 px-3.5 py-3 rounded-2xl text-base font-bold bg-pulse-50 dark:bg-pulse-950/60 text-pulse-600 dark:text-pulse-400 transition-all';
+        } else {
+          btn.className = 'nav-btn w-full flex items-center justify-center xl:justify-start gap-4 px-3.5 py-3 rounded-2xl text-base font-medium text-slate-600 dark:text-slate-400 hover:bg-slate-200/60 dark:hover:bg-slate-800/60 transition-all';
+        }
+      });
+      document.querySelectorAll('.mobile-nav-btn').forEach(btn => {
+        const isActive = btn.dataset.tab === window.appState.activeTab;
+        if (isActive) {
+          btn.classList.remove('text-slate-500');
+          btn.classList.add('text-pulse-600', 'dark:text-pulse-400');
+        } else {
+          btn.classList.add('text-slate-500');
+          btn.classList.remove('text-pulse-600', 'dark:text-pulse-400');
+        }
+      });
+    }
+
+    // Composer Helpers
+    window.focusComposer = function() {
+      if (window.appState.activeTab !== 'home' && window.appState.activeTab !== 'profile') {
+        window.switchTab('home');
+      }
+      document.getElementById('post-input').focus();
+    }
+
+    window.updateCharCount = function() {
+      const input = document.getElementById('post-input');
+      const counter = document.getElementById('char-counter');
+      counter.textContent = `${input.value.length}/280`;
+    }
+
+    window.toggleDrawer = function(id) {
+      ['sample-photo-drawer', 'mood-drawer'].forEach(dId => {
+        const el = document.getElementById(dId);
+        if (dId === id) el.classList.toggle('hidden');
+        else el.classList.add('hidden');
+      });
+    }
+
+    window.attachSamplePhoto = function(url) {
+      window.appState.attachedPhoto = url;
+      document.getElementById('composer-photo-img').src = url;
+      document.getElementById('composer-photo-preview').classList.remove('hidden');
+      document.getElementById('sample-photo-drawer').classList.add('hidden');
+    }
+
+    window.removeAttachedPhoto = function() {
+      window.appState.attachedPhoto = null;
+      document.getElementById('composer-photo-preview').classList.add('hidden');
+    }
+
+    window.selectMood = function(mood) {
+      window.appState.selectedMood = mood;
+      document.getElementById('selected-mood-text').textContent = mood;
+      document.getElementById('selected-mood-badge').classList.remove('hidden');
+      document.getElementById('mood-drawer').classList.add('hidden');
+    }
+
+    window.clearMood = function() {
+      window.appState.selectedMood = null;
+      document.getElementById('selected-mood-badge').classList.add('hidden');
+    }
+
+    window.handleSearch = function(query) {
+      window.appState.searchQuery = query.trim().toLowerCase();
+      renderFeed();
+    }
+
+    window.filterByTag = function(tag) {
+      window.appState.activeTag = tag === 'All' ? null : tag;
+      document.getElementById('active-filter-tag').textContent = tag;
+      document.getElementById('active-filter-bar').classList.toggle('hidden', tag === 'All');
+      renderFeed();
+    }
+
+    window.clearTagFilter = function() {
+      window.appState.activeTag = null;
+      document.getElementById('active-filter-bar').classList.add('hidden');
+      renderFeed();
+    }
+
+    // Render Feed & Blank State
+    function renderFeed() {
+      const container = document.getElementById('feed-container');
+      const emptyState = document.getElementById('empty-state');
+      const acc = window.appState.currentAccount;
+      const savedBookmarks = acc && acc.bookmarks ? acc.bookmarks : [];
+
+      let filtered = window.appState.posts.filter(post => {
+        if (window.appState.activeTab === 'bookmarks' && !savedBookmarks.includes(post.id)) return false;
+        if (window.appState.activeTab === 'profile' && (!acc || post.uid !== acc.accountId)) return false;
+
+        if (window.appState.activeTag) {
+          const t = window.appState.activeTag.toLowerCase();
+          if (!post.content.toLowerCase().includes(t)) return false;
+        }
+
+        if (window.appState.searchQuery) {
+          const q = window.appState.searchQuery;
+          if (!post.content.toLowerCase().includes(q) && !post.authorName.toLowerCase().includes(q)) return false;
+        }
+        return true;
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = '';
+        emptyState.classList.remove('hidden');
+        const icon = document.getElementById('empty-state-icon');
+        const title = document.getElementById('empty-state-title');
+        const desc = document.getElementById('empty-state-desc');
+
+        if (window.appState.activeTab === 'bookmarks') {
+          icon.className = 'fa-regular fa-bookmark';
+          title.textContent = 'No saved bookmarks';
+          desc.textContent = 'Tap the bookmark icon on any pulse to save it for later.';
+        } else if (window.appState.activeTab === 'profile') {
+          icon.className = 'fa-regular fa-user';
+          title.textContent = 'No pulses published yet';
+          desc.textContent = 'Use the composer above to publish your first pulse!';
+        } else {
+          icon.className = 'fa-regular fa-compass';
+          title.textContent = 'No pulses in the feed yet';
+          desc.textContent = 'Be the first pioneer to publish a pulse and kick off the real-time conversation!';
+        }
+        return;
+      }
+
+      emptyState.classList.add('hidden');
+
+      container.innerHTML = filtered.map(post => {
+        const likesArr = post.likes || [];
+        const isLiked = acc && likesArr.includes(acc.accountId);
+        const isBookmarked = savedBookmarks.includes(post.id);
+        const isOwner = acc && post.uid === acc.accountId;
+
+        return `
+          <article class="p-4 sm:px-5 hover:bg-slate-100/50 dark:hover:bg-slate-900/40 transition-colors animate-post-in">
+            <div class="flex gap-3.5">
+              <img src="${post.authorAvatar}" class="w-11 h-11 rounded-full object-cover shrink-0 ring-1 ring-slate-200 dark:ring-slate-800 bg-white" />
+              <div class="flex-1 min-w-0">
+                <div class="flex items-center justify-between gap-2">
+                  <div class="flex items-center gap-1.5 min-w-0 flex-wrap">
+                    <span class="font-bold text-sm sm:text-[15px] truncate">${escapeHtml(post.authorName)}</span>
+                    <i class="fa-solid fa-circle-check text-pulse-500 text-xs"></i>
+                    <span class="text-xs text-slate-500 dark:text-slate-400 truncate">${escapeHtml(post.authorHandle)}</span>
+                    <span class="text-slate-400 text-xs">·</span>
+                    <span class="text-xs text-slate-500">${post.timestamp}</span>
+                  </div>
+
+                  <div class="flex items-center gap-2">
+                    ${post.mood ? `<span class="px-2 py-0.5 rounded-full text-[11px] font-semibold bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300">${post.mood}</span>` : ''}
+                    ${isOwner ? `<button onclick="deletePost('${post.id}')" title="Delete Pulse" class="text-slate-400 hover:text-rose-500 text-xs p-1"><i class="fa-solid fa-trash-can"></i></button>` : ''}
+                  </div>
+                </div>
+
+                <p class="mt-1.5 text-sm sm:text-[15px] leading-relaxed text-slate-800 dark:text-slate-200 whitespace-pre-line break-words">
+                  ${escapeHtml(post.content)}
+                </p>
+
+                ${post.image ? `
+                  <div class="mt-3 rounded-2xl overflow-hidden border border-slate-200/80 dark:border-slate-800 bg-slate-100 dark:bg-slate-900">
+                    <img src="${post.image}" class="w-full max-h-96 object-cover" />
+                  </div>
+                ` : ''}
+
+                <div class="flex items-center justify-between mt-3 pt-1 max-w-md text-slate-500 dark:text-slate-400">
+                  <button type="button" onclick="toggleCommentsSection('${post.id}')" class="flex items-center gap-1.5 text-xs font-medium hover:text-pulse-600">
+                    <span class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-pulse-50">
+                      <i class="fa-regular fa-comment text-sm"></i>
+                    </span>
+                    <span>${(post.comments || []).length}</span>
+                  </button>
+
+                  <button type="button" onclick="toggleLike('${post.id}')" class="flex items-center gap-1.5 text-xs font-medium ${isLiked ? 'text-rose-500' : 'hover:text-rose-500'}">
+                    <span class="w-8 h-8 rounded-full flex items-center justify-center hover:bg-rose-50">
+                      <i class="${isLiked ? 'fa-solid' : 'fa-regular'} fa-heart text-sm"></i>
+                    </span>
+                    <span>${likesArr.length}</span>
+                  </button>
+
+                  <button type="button" onclick="toggleBookmark('${post.id}')" class="w-8 h-8 rounded-full flex items-center justify-center ${isBookmarked ? 'text-pulse-600' : 'hover:text-pulse-600'}">
+                    <i class="${isBookmarked ? 'fa-solid' : 'fa-regular'} fa-bookmark text-sm"></i>
+                  </button>
+                </div>
+
+                <!-- Comments Section -->
+                <div id="comments-box-${post.id}" class="hidden mt-3 pt-3 border-t border-slate-200/70 dark:border-slate-800 space-y-3">
+                  <form onsubmit="addComment(event, '${post.id}')" class="flex items-center gap-2.5">
+                    <input id="comment-input-${post.id}" type="text" placeholder="Write a reply..." class="flex-1 px-3.5 py-1.5 text-xs sm:text-sm rounded-full bg-slate-100 dark:bg-slate-800 border focus:outline-none focus:border-pulse-500" />
+                    <button type="submit" class="px-3 py-1 rounded-full bg-pulse-600 text-white text-xs font-semibold">Reply</button>
+                  </form>
+                  <div class="space-y-2">
+                    ${(post.comments || []).map(c => `
+                      <div class="flex gap-2 text-xs bg-slate-100/70 dark:bg-slate-800/60 rounded-2xl p-2.5">
+                        <img src="${c.avatar}" class="w-6 h-6 rounded-full object-cover shrink-0" />
+                        <div class="flex-1">
+                          <span class="font-bold">${escapeHtml(c.author)}</span>
+                          <span class="text-slate-400 ml-1">${escapeHtml(c.handle || '')}</span>
+                          <p class="text-slate-700 dark:text-slate-300 mt-0.5">${escapeHtml(c.text)}</p>
+                        </div>
+                      </div>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </article>
+        `;
+      }).join('');
+    }
+
+    window.toggleCommentsSection = function(postId) {
+      const box = document.getElementById(`comments-box-${postId}`);
+      if (box) box.classList.toggle('hidden');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return str.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    // Theme Switcher (In-memory state, respects OS preference by default)
+    window.toggleTheme = function() {
+      const html = document.documentElement;
+      html.classList.toggle('dark');
+      syncThemeUI();
+    }
+
+    function syncThemeUI() {
+      const isDark = document.documentElement.classList.contains('dark');
+      document.getElementById('theme-icon-desktop').className = isDark ? 'fa-solid fa-sun text-amber-400 text-base w-5 text-center' : 'fa-solid fa-moon text-pulse-500 text-base w-5 text-center';
+      document.getElementById('theme-label-desktop').textContent = isDark ? 'Light Mode' : 'Dark Mode';
+    }
+
+    // Toast Alert
+    function showToast(message) {
+      const container = document.getElementById('toast-container');
+      const toast = document.createElement('div');
+      toast.className = 'px-4 py-2.5 rounded-2xl bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-xs sm:text-sm font-semibold shadow-xl flex items-center gap-2 animate-post-in';
+      toast.innerHTML = `<i class="fa-solid fa-circle-check text-pulse-400"></i><span>${message}</span>`;
+      container.appendChild(toast);
+      setTimeout(() => {
+        toast.style.opacity = '0';
+        setTimeout(() => toast.remove(), 250);
+      }, 2500);
+    }
+
+    // Init Theme based on OS preference
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+    syncThemeUI();
+  </script>
+</body>
+</html>
